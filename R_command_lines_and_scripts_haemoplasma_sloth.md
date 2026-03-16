@@ -742,18 +742,6 @@ model_3  11 150.3660
 model_3a  6 143.3069
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
 Perform drop-one-term analysis on the additive model:
 ```
 res <- drop1(model_3a, test = "Chisq")
@@ -763,12 +751,13 @@ Results are:
 ```
 Single term deletions
 Model:
-SMI ~ anaplasma + season + sex
-          Df Deviance    AIC scaled dev.  Pr(>Chi)    
-<none>         26.429 150.56                          
-anaplasma  1   26.855 149.89      1.3271 0.2493206    
-season     1   26.453 148.64      0.0770 0.7814389    
-sex        1   30.723 161.06     12.4943 0.0004082 ***  
+SMI ~ haemoplasma + bloodparasite + season + sex
+              Df Deviance    AIC scaled dev.  Pr(>Chi)    
+<none>             23.641 143.31                          
+haemoplasma    1   26.804 151.73     10.4232 0.0012444 ** 
+bloodparasite  1   23.642 141.31      0.0045 0.9463824    
+season         1   23.655 141.36      0.0515 0.8205475    
+sex            1   27.489 153.82     12.5176 0.0004031 ***
 ```
 
 Calculate delta AIC for each term to assess its contribution to model fit:
