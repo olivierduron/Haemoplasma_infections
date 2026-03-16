@@ -301,7 +301,31 @@ odds ratio
          0 
 ```
 
-## Step 5. Test whetherhaemoplasma infection prevalence in _Choloepus didactylus_ (Cd) is influenced by sex, age, season, ticks and other blood parasites (GLM model 2)
+Display the proportion of Bt sloths infected by `haemoplasma` in wet and dry `season`:
+```
+table_haemoplasma_tick_Bt <- table(data_Bt$haemoplasma, data_Bt$season)
+table_haemoplasma_tick_Bt
+```
+
+Tests for associations between `haemoplasma` and the `season` in Bt:
+```
+fisher.test(table(data_Bt$haemoplasma, data_Bt$season))  
+```
+
+Results are:
+```
+Fisher's Exact Test for Count Data
+data:  table(data_Bt$haemoplasma, data_Bt$season)
+p-value = 0.2927
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+ 0.3909555       Inf
+sample estimates:
+odds ratio 
+       Inf 
+```
+
+## Step 5. Test whether haemoplasma infection prevalence in _Choloepus didactylus_ (Cd) is influenced by sex, age, season, ticks and other blood parasites (GLM model 2)
 
 Create a subset `data_Cd` containing only records for _Choloepus didactylus_ (Cd):
 ```
