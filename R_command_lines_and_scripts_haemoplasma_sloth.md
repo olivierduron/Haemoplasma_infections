@@ -18,7 +18,7 @@ We analyzed data from 175 wild sloths captured between 1994 and 1995 during the 
 - `microfilaria` : Infection status with microfilariae (0: Uninfected; 1: Infected)
 - `trypanosome` : Infection status with trypanosomes (0: Uninfected; 1: Infected)
 - `babesia` : Infection status with _Babesia_ (0: Uninfected; 1: Infected)
-- `bloodparasite` : Combined infection status for blood parasites (microfilariae + trypanosome + _Babesia_, but excluding _Anaplasma_; 0: Uninfected; 1: Infected)
+- `bloodparasite` : Combined infection status for blood parasites/pathogens (_Anaplasma_ + microfilariae + trypanosome + _Babesia_, but excluding haemotropic mycoplasmas; 0: Uninfected; 1: Infected)
   
 Details about all the experimental methods and measures are available in the related manuscript.
 
@@ -39,13 +39,13 @@ Details about all the experimental methods and measures are available in the rel
 
 ## Step 1. Retrieving the data
 
-All veterinary clinical data for the two sloth species are available here: https://github.com/olivierduron/Anaplasma_sloth_infections/blob/main/data_sloth.csv
+All veterinary clinical data for the two sloth species are available here: (https://github.com/olivierduron/Haemoplasma_sloth_infections/blob/main/data_haemoplasma_sloth.xlsx)
 
 This database will be referred to as `data_sloth` throughout the R command lines and scripts provided below. It corresponds to the dataset provided in Table S1 of the related manuscript.
 
 Load the dataset directly from the GitHub repository to R:
 ```
-data_sloth <- read.csv("https://raw.githubusercontent.com/olivierduron/Anaplasma_sloth_infections/main/data_sloth.csv", sep="\t")
+data_sloth <- read.csv("https://github.com/olivierduron/Haemoplasma_sloth_infections/blob/main/data_haemoplasma_sloth.xlsx", sep="\t")
 ```
 
 
