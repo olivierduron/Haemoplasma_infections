@@ -303,11 +303,18 @@ odds ratio
 
 Display the proportion of Bt sloths infected by `haemoplasma` in wet and dry `season`:
 ```
-table_haemoplasma_tick_Bt <- table(data_Bt$haemoplasma, data_Bt$season)
-table_haemoplasma_tick_Bt
+table_haemoplasma_season_Bt <- table(data_Bt$haemoplasma, data_Bt$season)
+table_haemoplasma_season_Bt
 ```
 
-Tests for associations between `haemoplasma` and the `season` in Bt:
+Results are:
+```
+     D  W
+  0 34 54
+  1  0  4
+```
+
+Tests for associations between `haemoplasma` and `season` in Bt:
 ```
 fisher.test(table(data_Bt$haemoplasma, data_Bt$season))  
 ```
@@ -470,116 +477,112 @@ model2_tick          79.07643         -1.356560
 model2_bloodparasite 77.48955         -2.943435
 ```
 
-
-
-
-
-
-
-
-
-Display the proportion of Cd sloths infected by Anaplasma with and without ticks:
+Tests for associations between `haemoplasma` and the presence of blood parasites (`anaplasma`, `microfilaria`, `trypanosome`, `babesia`) considered separately in Cd:
 ```
-table_anaplasma_tick_Cd <- table(data_Cd$anaplasma, data_Cd$tick)
-table_anaplasma_tick_Cd
-```
-
-Tests for associations between `anaplasma` and the presence of `tick`considered in Cd:
-```
-fisher.test(table(data_Cd$anaplasma, data_Cd$tick))  
+fisher.test(table(data_Cd$haemoplasma, data_Cd$anaplasma))
+fisher.test(table(data_Cd$haemoplasma, data_Cd$microfilaria))  
+fisher.test(table(data_Cd$haemoplasma, data_Cd$trypanosome))  
+fisher.test(table(data_Cd$haemoplasma, data_Cd$babesia))
 ```
 
 Results are:
 ```
 Fisher's Exact Test for Count Data
-data:  table(data_Cd$anaplasma, data_Cd$tick)
-p-value = 0.06647
+data:  table(data_Cd$haemoplasma, data_Cd$anaplasma)
+p-value = 0.02172
 alternative hypothesis: true odds ratio is not equal to 1
 95 percent confidence interval:
-0.8993651 10.6691063
+  1.126489 28.191553
 sample estimates:
 odds ratio 
-2.92993 
+  4.689964 
+---
+data:  table(data_Cd$haemoplasma, data_Cd$microfilaria)
+p-value = 0.4456
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+   0.3757521 137.1929723
+sample estimates:
+odds ratio 
+  2.969683 
+---
+data:  table(data_Cd$haemoplasma, data_Cd$trypanosome)
+p-value = 0.3306
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+  0.002632914 17.565042872
+sample estimates:
+odds ratio 
+ 0.2146914 
+---
+data:  table(data_Cd$haemoplasma, data_Cd$babesia)
+p-value = 1
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+  0.1447197 66.6934646
+sample estimates:
+odds ratio 
+  1.350276 
 ```
 
-Tests for associations between `anaplasma` and the presence of blood parasites (`microfilaria`, `trypanosome`, `babesia`) considered separately in Cd:
+Display the proportion of Cd sloths infected by `haemoplasma` and `bloodparasite`:
 ```
-fisher.test(table(data_Cd$anaplasma, data_Cd$microfilaria))  
-fisher.test(table(data_Cd$anaplasma, data_Cd$trypanosome))  
-fisher.test(table(data_Cd$anaplasma, data_Cd$babesia))
+table_haemoplasma_bloodparasite_Cd <- table(data_Cd$haemoplasma, data_Cd$bloodparasite)
+table_haemoplasma_bloodparasite_Cd
+```
+
+Results are:
+```
+bloodparasite   0  1
+haemoplasma  0 10  5
+             1 24 44
+```
+
+Display the proportion of Cd sloths infected by `haemoplasma` in `anaplasma`:
+```
+table_haemoplasma_anaplasma_Cd <- table(data_Cd$haemoplasma, data_Cd$anaplasma)
+table_haemoplasma_anaplasma_Cd
+```
+
+Results are:
+```
+anaplasma        0  1
+haemoplasma   0 12  3
+              1 31 37
+```
+
+Display the proportion of Cd sloths infected by `haemoplasma` in wet and dry `season`:
+```
+table_haemoplasma_season_Cd <- table(data_Cd$haemoplasma, data_Cd$season)
+table_haemoplasma_season_Cd
+```
+
+Results are:
+```
+     D  W
+  0 14  1
+  1 47 21
+```
+
+Tests for associations between `haemoplasma` and `season` in Cd:
+```
+fisher.test(table(data_Cd$haemoplasma, data_Cd$season))  
 ```
 
 Results are:
 ```
 Fisher's Exact Test for Count Data
-data:  table(data_Cd$anaplasma, data_Cd$microfilaria)
-p-value = 0.9999
+data:  table(data_Cd$haemoplasma, data_Cd$season)
+p-value = 0.06059
 alternative hypothesis: true odds ratio is not equal to 1
 95 percent confidence interval:
-0.2272016 3.5201430
+   0.8295181 276.5385457
 sample estimates:
 odds ratio 
-0.9086257 
-
-data:  table(data_Cd$anaplasma, data_Cd$trypanosome)
-p-value = 0.2292
-alternative hypothesis: true odds ratio is not equal to 1
-95 percent confidence interval:
-0.2028662       Inf
-sample estimates:
-odds ratio 
-Inf 
-
-data:  table(data_Cd$anaplasma, data_Cd$babesia)
-p-value = 0.2538
-alternative hypothesis: true odds ratio is not equal to 1
-95 percent confidence interval:
-0.4399427 32.1559681
-sample estimates:
-odds ratio 
-2.892291 
+  6.158366  
 ```
 
-## Step 6. Test whether the proportion of sloths carrying ticks and blood parasites vary between seasons
-Test whether the proportion of sloths carrying `tick` and `bloodparasite` differs across `season` in Bt:
-```
-chisq.test(table(data_Bt$tick, data_Bt$season))
-chisq.test(table(data_Bt$season, data_Bt$bloodparasite))
-```
-
-Results are:
-```
-Pearson's Chi-squared test with Yates' continuity correction
-data:  table(data_Bt$tick, data_Bt$season)
-X-squared = 4.1762e-31, df = 1, p-value = 1
-
-data:  table(data_Bt$season, data_Bt$bloodparasite)
-X-squared = 0.74957, df = 1, p-value = 0.3866
-```
-
-Test whether the proportion of sloths carrying `tick` and `bloodparasite` differs across `season` in Cd:
-```
-chisq.test(table(data_Cd$season, data_Cd$bloodparasite))  
-chisq.test(table(data_Cd$tick, data_Cd$season))
-```
-
-Results are:
-```
-Pearson's Chi-squared test with Yates' continuity correction
-data:  table(data_Cd$season, data_Cd$bloodparasite)
-X-squared = 2.8165, df = 1, p-value = 0.0933
-
-data:  table(data_Cd$tick, data_Cd$season)
-X-squared = 4.204, df = 1, p-value = 0.04033
-```
-
-Display the proportion of Cd sloths infested with `tick` across different `season`
-```
-table_tick_season_Cd <- table(data_Cd$tick, data_Cd$season)
-table_tick_season_Cd
-```
-
-## Step 7. Impact of _Anaplasma_ infections on Scale Mass Index (SMI) (GLM models 3 and 4)
+## Step 6. Impact of haemaplasma infections on Scale Mass Index (SMI) (GLM models 3 and 4)
 The Scaled Mass Index (SMI) was used as a body condition indicator that standardizes individual `weight` to `body_length`, using an allometric scaling relationship. SMI was calculated following Peig & Green (2009) (https://doi.org/10.1111/j.1600-0706.2009.17643.x).
 
 Function to calculate SMI for adult Bt:
@@ -591,9 +594,8 @@ L0 <- mean(data_adult_Bt$total_length, na.rm = TRUE)
 data_adult_Bt$SMI <- data_adult_Bt$weight * (L0 / data_adult_Bt$total_length)^b
 ```
 
-Fit a GLM to test whether SMI is influenced by interactions among `anaplasma`, `sex`, and `season` in Bt:
-```
-model_3 <- glm(SMI ~ anaplasma * season * sex, data = data_adult_Bt, family = gaussian(link = "identity"))
+Fit a GLM to test whether SMI is influenced by interactions among `haemoplasma`, `bloodparasite`, `sex` and `season`:
+model_3 <- glm(SMI ~ haemoplasma * bloodparasite * season * sex, data = data_adult_Bt, family = gaussian(link = "identity"))
 ```
 
 Fit a GLM to test whether SMI is influenced by additive effects of `anaplasma`, `sex`, and `season` in Bt:
