@@ -1888,66 +1888,40 @@ model_7b  2 513.0105
 model_7  11 517.8352
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Generate diagnostic plots (residuals, leverage, etc.) for model_7b to assess model fit and identify potential outliers:
+Generate QQ plot for model_7b to assess normality of residuals:
 ```
-par(mfrow = c(2,2))
-plot(model_7b)
+res_dev <- residuals(model_7b, type = "deviance")
+qqnorm(res_dev, main = "QQ Plot (Deviance residuals)")
+qqline(res_dev, col = "red")
 ```
 
-Fit a GLM to test whether `hematocrit` is influenced by interactions among `anaplasma`, `sex`, and `season` in Cd:
+Calculation of mean and standard error of `hematocrit` by `haemoplasma` for Bt:
 ```
-model_8 <- glm(hematocrit ~ anaplasma * season * sex, data = data_adult_Cd, family = Gamma(link = "log"))
+data_adult_Bt %>%
+  group_by(haemoplasma) %>%
+  summarise(
+    mean_hematocrit = mean(hematocrit, na.rm = TRUE),
+    se_hematocrit = sd(hematocrit, na.rm = TRUE) / sqrt(sum(!is.na(hematocrit)))
+  )
 ```
 
-Fit a GLM to test whether `hematocrit` is influenced by additive effects of `anaplasma`, `sex`, and `season` in Cd:
+Results are:
 ```
-model_8a <- glm(hematocrit ~ anaplasma + season + sex, data = data_adult_Cd, family = Gamma(link = "log"))
+A tibble: 2 × 3
+  haemoplasma mean_hematocrit se_hematocrit
+  <fct>                 <dbl>         <dbl>
+1 0                      39.0         0.569
+2 1                      40.8         3.04 
+```
+
+Fit a GLM to test whether `hematocrit` is influenced by interactions among `haemoplasma`, `bloodparasite`, `sex`, and `season` in Cd:
+```
+model_8 <- glm(hematocrit ~ haemoplasma * bloodparasite * season * sex, data = data_adult_Cd, family = Gamma(link = "log"))
+```
+
+Fit a GLM to test whether `hematocrit` is influenced by additive effects of `haemoplasma`, `bloodparasite`, `sex`, and `season` in Cd:
+```
+model_8a <- glm(hematocrit ~ haemoplasma + bloodparasite + season + sex, data = data_adult_Cd, family = Gamma(link = "log"))
 ```
 
 Compare the additive model (model_8a) to the interaction model (model_8) using a likelihood ratio test:
@@ -1958,11 +1932,11 @@ anova(model_8a, model_8, test = "Chisq")
 Results are:
 ```
 Analysis of Deviance Table
-Model 1: hematocrit ~ anaplasma + season + sex
-Model 2: hematocrit ~ anaplasma * season * sex
+Model 1: hematocrit ~ haemoplasma + bloodparasite + season + sex
+Model 2: hematocrit ~ haemoplasma * bloodparasite * season * sex
   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-1        56     1.1615                     
-2        52     1.1006  4 0.060872   0.5281
+1        55     1.1832                     
+2        49     1.1262  6 0.057072   0.8368
 ```
 
 Compute AIC for both models to evaluate model fit:
@@ -1973,8 +1947,8 @@ AIC(model_8, model_8a)
 Results are:
 ```
          df      AIC
-model_8   9 385.9115
-model_8a  5 381.1516
+model_8  12 393.2948
+model_8a  6 384.2705
 ```
 
 Perform drop-one-term analysis on the additive model:
@@ -1986,12 +1960,13 @@ Results are:
 ```
 Single term deletions
 Model:
-hematocrit ~ anaplasma + season + sex
-          Df Deviance    AIC scaled dev. Pr(>Chi)   
-<none>         1.1615 381.15                        
-anaplasma  1   1.2398 383.35      4.1984 0.040463 * 
-season     1   1.3171 387.49      8.3362 0.003886 **
-sex        1   1.2001 381.22      2.0708 0.150145   
+hematocrit ~ haemoplasma + bloodparasite + season + sex
+              Df Deviance    AIC scaled dev. Pr(>Chi)   
+<none>             1.1832 384.27                        
+haemoplasma    1   1.1883 382.54      0.2645 0.607020   
+bloodparasite  1   1.2285 384.64      2.3705 0.123646   
+season         1   1.3174 389.30      7.0307 0.008013 **
+sex            1   1.2199 384.19      1.9221 0.165622   
 ```
 
 Calculate delta AIC for each term to assess its contribution to model fit:
@@ -2003,46 +1978,46 @@ print(res[, c("AIC", "delta_AIC")])
 
 Results are:
 ```
-             AIC delta_AIC
-<none>    381.15    0.0000
-anaplasma 383.35    2.1984
-season    387.49    6.3362
-sex       381.22    0.0708
+                 AIC delta_AIC
+<none>        384.27    0.0000
+haemoplasma   382.54   -1.7355
+bloodparasite 384.64    0.3705
+season        389.30    5.0307
+sex           384.19   -0.0779
 ```
 
-Fit a linear model to test the model_8b (`hematocrit` ~ `anaplasma` + `season`) in adult Cd, assessing model fit:
+Fit a linear model to test the model_8b (`hematocrit` ~ `season`) in adult Cd, assessing model fit:
 ```
-model_8b <- glm(hematocrit ~ anaplasma + season, data = data_adult_Cd, family = Gamma(link = "log"))
+model_8b <- glm(hematocrit ~ season, data = data_adult_Cd, family = Gamma(link = "log"))
 anova(model_8b, model_8, test = "Chisq")
 AIC(model_8b, model_8)
 ```
 
 Results are:
 ```
-> anova(model_8b, model_8, test = "Chisq")
 Analysis of Deviance Table
-Model 1: hematocrit ~ anaplasma + season
-Model 2: hematocrit ~ anaplasma * season * sex
+Model 1: hematocrit ~ season
+Model 2: hematocrit ~ haemoplasma * bloodparasite * season * sex
   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-1        57     1.2001                     
-2        52     1.1006  5 0.099531    0.392
-
-> AIC(model_8b, model_8)
+1        58     1.2872                     
+2        49     1.1262  9  0.16103    0.552
+---
          df      AIC
-model_8b  4 381.1227
-model_8   9 385.9115
+model_8b  3 383.3404
+model_8  12 393.2948
 ```
 
-Generate diagnostic plots (residuals, leverage, etc.) for model_8b to assess model fit and identify potential outliers:
+Generate QQ plot for model_8b to assess normality of residuals:
 ```
-par(mfrow = c(2,2))
-plot(model_8b)
+res_dev <- residuals(model_8b, type = "deviance")
+qqnorm(res_dev, main = "QQ Plot (Deviance residuals)")
+qqline(res_dev, col = "red")
 ```
 
-Calculation of mean and standard error of `hematocrit` by `anaplasma` for Cd:
+Calculation of mean and standard error of `hematocrit` by `haemoplasma` for Cd:
 ```
 data_adult_Cd %>%
-  group_by(anaplasma) %>%
+  group_by(haemoplasma) %>%
   summarise(
     mean_hematocrit = mean(hematocrit, na.rm = TRUE),
     se_hematocrit = sd(hematocrit, na.rm = TRUE) / sqrt(sum(!is.na(hematocrit)))
@@ -2052,10 +2027,10 @@ data_adult_Cd %>%
 Results are:
 ```
 A tibble: 2 × 3
-  anaplasma mean_hematocrit se_hematocrit
-  <fct>               <dbl>         <dbl>
-1 0                    39.6         0.675
-2 1                    37.6         1.32 
+  haemoplasma mean_hematocrit se_hematocrit
+  <fct>                 <dbl>         <dbl>
+1 0                      39.1         1.48 
+2 1                      38.6         0.798
 ```
 
 Calculation of mean and standard error of `hematocrit` by `season` for Cd:
@@ -2077,165 +2052,21 @@ A tibble: 2 × 3
 2 W                 41.1         0.944
 ```
 
-Fit a GLM to test whether `hematocrit` is influenced by interactions among `anaplasma`, `sex`, and `season` in Cd (with the exclusion of four outlier observations with `hematocrit` values below 30%):
+Create violin plots for `hematocrit`
 ```
-model_9 <- glm(hematocrit ~ anaplasma * season * sex, data = data_adult_Cd, family = Gamma(link = "log"), subset = hematocrit >= 30)
-```
+label_style <- element_text(size = 28, face = "bold") 
 
-Fit a GLM to test whether `hematocrit` is influenced by additive effects of `anaplasma`, `sex`, and `season` in Cd (with the exclusion of four outlier observations with `hematocrit` values below 30%):
-```
-model_9a <- glm(hematocrit ~ anaplasma + season + sex, data = data_adult_Cd, family = Gamma(link = "log"), subset = hematocrit >= 30)
-```
-
-Compare the additive model (model_9a) to the interaction model (model_9) using a likelihood ratio test:
-```
-anova(model_9a, model_9, test = "Chisq")
-```
-
-Results are:
-```
-Analysis of Deviance Table
-Model 1: hematocrit ~ anaplasma + season + sex
-Model 2: hematocrit ~ anaplasma * season * sex
-  Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-1        54    0.65076                     
-2        50    0.62506  4   0.0257   0.7296
-```
-
-Compute AIC for both models to evaluate model fit:
-```
-AIC(model_9, model_9a)
-```
-
-Results are:
-```
-         df      AIC
-model_9   9 345.0484
-model_9a  5 339.3897
-```
-
-Perform drop-one-term analysis on the additive model:
-```
-res <- drop1(model_9a, test = "Chisq")
-```
-
-Results are:
-```
-Single term deletions
-Model:
-hematocrit ~ anaplasma + season + sex
-          Df Deviance    AIC scaled dev. Pr(>Chi)  
-<none>        0.65076 339.39                       
-anaplasma  1  0.67203 339.12      1.7305  0.18835  
-season     1  0.72612 343.52      6.1318  0.01328 *
-sex        1  0.65589 337.81      0.4178  0.51803  
-```
-
-Calculate delta AIC for each term to assess its contribution to model fit:
-```
-aic_full <- AIC(model_9a)
-res$delta_AIC <- res$AIC - aic_full
-print(res[, c("AIC", "delta_AIC")])
-```
-
-Results are:
-```
-             AIC delta_AIC
-<none>    339.39    0.0000
-anaplasma 339.12    0.2695
-season    343.52    4.1318
-sex       337.81    1.5822
-```
-
-Fit a linear model to test the model_8b (`hematocrit` ~ `season`) in adult Cd, assessing model fit (with the exclusion of four outlier observations with `hematocrit` values below 30%):
-```
-model_9b <- glm(hematocrit ~ season, data = data_adult_Cd, family = Gamma(link = "log"), subset = hematocrit >= 30)
-anova(model_9b, model_9, test = "Chisq")
-AIC(model_9b, model_9)
-```
-
-Results are:
-```
-Analysis of Deviance Table
-Model 1: hematocrit ~ season
-Model 2: hematocrit ~ anaplasma * season * sex
-  Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-1        56    0.67789                     
-2        50    0.62506  6 0.052834   0.6523
-
-> AIC(model_9b, model_9)
-         df      AIC
-model_9b  3 337.7635
-model_9   9 345.0484
-```
-
-Compare the null model (model_null) to univariate models using likelihood ratio tests and AIC:
-```
-model9_null <- glm(hematocrit ~ 1, data = data_adult_Cd, family = Gamma(link = "log"), subset = hematocrit >= 30)
-model9_anaplasma <- glm(hematocrit ~ anaplasma, data = data_adult_Cd, family = Gamma(link = "log"), subset = hematocrit >= 30)
-model9_season <- glm(hematocrit ~ season, data = data_adult_Cd, family = Gamma(link = "log"), subset = hematocrit >= 30)
-model9_sex <- glm(hematocrit ~ sex, data = data_adult_Cd, family = Gamma(link = "log"), subset = hematocrit >= 30)
-anova(model9_null, model9_anaplasma, test="Chisq")
-anova(model9_null, model9_season, test="Chisq")
-anova(model9_null, model9_sex, test="Chisq")
-aics <- AIC(model9_null, model9_anaplasma, model9_season, model9_sex)
-aic_null <- aics["model9_null", "AIC"]
-aics$delta_AIC_vs_null <- aics$AIC - aic_null
-print(aics[, c("AIC", "delta_AIC_vs_null")])
-```
-
-Results are:
-```
-Analysis of Deviance Table
-Model 1: hematocrit ~ 1
-Model 2: hematocrit ~ anaplasma
-  Resid. Df Resid. Dev Df  Deviance Pr(>Chi)
-1        57    0.73373                      
-2        56    0.72787  1 0.0058539   0.5033
----
-Analysis of Deviance Table
-Model 1: hematocrit ~ 1
-Model 2: hematocrit ~ season
-  Resid. Df Resid. Dev Df Deviance Pr(>Chi)  
-1        57    0.73373                       
-2        56    0.67789  1 0.055834  0.03221 *
----
-Analysis of Deviance Table
-Model 1: hematocrit ~ 1
-Model 2: hematocrit ~ sex
-  Resid. Df Resid. Dev Df  Deviance Pr(>Chi)
-1        57    0.73373                      
-2        56    0.73160  1 0.0021244   0.6867
----
-                      AIC delta_AIC_vs_null
-model9_null      340.3634          0.000000
-model9_anaplasma 341.8978          1.534422
-model9_season    337.7635          2.599874
-model9_sex       342.1949          1.831468
-```
-
-
-Generate diagnostic plots for model_8b to assess model fit and identify potential outliers:
-```
-par(mfrow = c(2,2))
-plot(model_9b)
-```
-
-Create Figure 4 (violin plots for `hematocrit`)
-```
-label_style <- element_text(size = 28, face = "bold")  # doublé
-
-pA <- ggplot(data_adult_Bt, aes(x = factor(anaplasma, levels = c(0, 1),
+pA <- ggplot(data_adult_Bt, aes(x = factor(haemoplasma, levels = c(0, 1),
                                 labels = c("Uninfected", "Infected")),
                                 y = hematocrit)) +
   geom_violin(fill = "darkolivegreen3", color = "black", alpha = 0.7, trim = FALSE) +
   geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
   geom_jitter(width = 0.15, size = 1.5, alpha = 0.5) +
-  labs(x = NULL,  # retirer légende axe x
-       y = "Hematocrit (%)",   # correction demandée
+  labs(x = NULL,  
+       y = "Hematocrit (%)",   
        title = "A") +
   scale_y_continuous(limits = c(20, 60)) +
-  scale_x_discrete(labels = NULL) +  # enlever Uninfected / Infected
+  scale_x_discrete(labels = NULL) + 
   theme_minimal() +
   theme(plot.title = label_style)
 
@@ -2249,7 +2080,7 @@ pB <- ggplot(data_adult_Bt, aes(x = factor(season, levels = c("D", "W"),
        y = NULL,
        title = "B") +
   scale_y_continuous(limits = c(20, 60)) +
-  scale_x_discrete(labels = NULL) +  # enlever Dry / Wet
+  scale_x_discrete(labels = NULL) +  
   theme_minimal() +
   theme(plot.title = label_style)
 
@@ -2263,17 +2094,17 @@ pC <- ggplot(data_adult_Bt, aes(x = factor(sex, levels = c("M", "F"),
        y = NULL,
        title = "C") +
   scale_y_continuous(limits = c(20, 60)) +
-  scale_x_discrete(labels = NULL) +  # enlever Male / Female
+  scale_x_discrete(labels = NULL) +  
   theme_minimal() +
   theme(plot.title = label_style)
 
-pD <- ggplot(data_adult_Cd, aes(x = factor(anaplasma, levels = c(0, 1),
+pD <- ggplot(data_adult_Cd, aes(x = factor(haemoplasma, levels = c(0, 1),
                                 labels = c("Uninfected", "Infected")),
                                 y = hematocrit)) +
   geom_violin(fill = "goldenrod1", color = "black", alpha = 0.7, trim = FALSE) +
   geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
   geom_jitter(width = 0.15, size = 1.5, alpha = 0.5) +
-  labs(x = expression(paste(italic("Anaplasma"), " infection status")),
+  labs(x = expression(paste("Haemoplasma", " infection status")),
        y = "Hematocrit (%)",
        title = "D") +
   scale_y_continuous(limits = c(10, 60)) +
@@ -2309,7 +2140,7 @@ final_plot <- (pA | pB | pC) / (pD | pE | pF)
 print(final_plot)
 ```
 
-## Step 10. Impact of _Anaplasma_ infections on body temperature (CLRM models 10 and 11)
+## Step 10. Impact of Haemoplasma infections on body temperature (CLRM models 10 and 11)
 Convert `temperature` to numeric, handle left-censored values (<32°C) for analysis in Bt:
 ```
 data_adult_Bt <- data_adult_Bt %>%
@@ -2326,10 +2157,10 @@ temp <- Surv(data_adult_Bt$temperature_numeric,
                   type = "left")
 ```
 
-Fit Gaussian survival regression models to test the effects of `anaplasma`, `season`, `sex` on `temperature`, with (model_10) and without (model_10b) interactions in Bt:
+Fit Gaussian survival regression models to test the effects of `haemoplasma`, `bloodparasite`, `season`, `sex` on `temperature`, with (model_10) and without (model_10b) interactions in Bt:
 ```
-model_10 <- survreg(temp ~ anaplasma * season * sex, data = data_adult_Bt, dist = "gaussian")
-model_10a <- survreg(temp ~ anaplasma + season + sex, data = data_adult_Bt, dist = "gaussian")
+model_10 <- survreg(temp ~ haemoplasma * bloodparasite * season * sex, data = data_adult_Bt, dist = "gaussian")
+model_10a <- survreg(temp ~ haemoplasma + bloodparasite + season + sex, data = data_adult_Bt, dist = "gaussian")
 
 ```
 
@@ -2341,17 +2172,14 @@ AIC(model_10a, model_10)
 
 Results are:
 ```
-> anova(model_10a, model_10, test = "Chisq")
-                     Terms Resid. Df    -2*LL Test Df Deviance Pr(>Chi)
-1 anaplasma + season + sex        28 80.80398      NA       NA       NA
-2 anaplasma * season * sex        24 79.63689    =  4 1.167089 0.883487
-
-> AIC(model_10a, model_10)
-          df      AIC
-model_10a  5 90.80398
-model_10   9 97.63689
+                                       Terms Resid. Df    -2*LL Test Df  Deviance  Pr(>Chi)
+1 haemoplasma + bloodparasite + season + sex        27 79.74336      NA        NA        NA
+2 haemoplasma * bloodparasite * season * sex        16 79.05558    = 11 0.6877884 0.9999927
+---
+          df       AIC
+model_10a  6  91.74336
+model_10  17 113.05558
 ```
-
 
 Perform drop-one-term analysis on the additive model:
 ```
@@ -2362,12 +2190,13 @@ Results are:
 ```
 Single term deletions
 Model:
-temp ~ anaplasma + season + sex
-          Df    AIC    LRT Pr(>Chi)  
-<none>       90.804                  
-anaplasma  1 89.482 0.6785  0.41010  
-season     1 89.054 0.2497  0.61730  
-sex        1 93.181 4.3768  0.03643 *
+temp ~ haemoplasma + bloodparasite + season + sex
+              Df    AIC    LRT Pr(>Chi)  
+<none>           91.743                  
+haemoplasma    1 91.269 1.5261   0.2167  
+bloodparasite  1 89.952 0.2084   0.6480  
+season         1 90.275 0.5320   0.4658  
+sex            1 94.666 4.9228   0.0265 *
 ```
 
 Calculate delta AIC for each term to assess its contribution to model fit:
@@ -2379,23 +2208,26 @@ print(res[, c("AIC", "delta_AIC")])
 
 Results are:
 ```
-             AIC delta_AIC
-<none>    90.804    0.0000
-anaplasma 89.482    1.3215
-season    89.054    1.7503
-sex       93.181    2.3768
+                 AIC delta_AIC
+<none>        91.743   0.00000
+haemoplasma   91.269  -0.47387
+bloodparasite 89.952  -1.79159
+season        90.275  -1.46797
+sex           94.666   2.92284
 ```
 
 Compare the null model (model_null) to univariate models using likelihood ratio tests and AIC:
 ```
 model10_null <- survreg(temp ~ 1, data = data_adult_Bt, dist = "gaussian")
-model10_anaplasma <- survreg(temp ~ anaplasma, data = data_adult_Bt, dist = "gaussian")
+model10_haemoplasma <- survreg(temp ~ haemoplasma, data = data_adult_Bt, dist = "gaussian")
+model10_bloodparasite <- survreg(temp ~ bloodparasite, data = data_adult_Bt, dist = "gaussian")
 model10_season <- survreg(temp ~ season, data = data_adult_Bt, dist = "gaussian")
 model10_sex <- survreg(temp ~ sex, data = data_adult_Bt, dist = "gaussian")
-anova(model10_null, model10_anaplasma, test="Chisq")
+anova(model10_null, model10_haemoplasma, test="Chisq")
+anova(model10_null, model10_bloodparasite, test="Chisq")
 anova(model10_null, model10_season, test="Chisq")
 anova(model10_null, model10_sex, test="Chisq")
-aics <- AIC(model10_null, model10_anaplasma, model10_season, model10_sex)
+aics <- AIC(model10_null, model10_haemoplasma, model10_bloodparasite, model10_season, model10_sex)
 aic_null <- aics["model10_null", "AIC"]
 aics$delta_AIC_vs_null <- aics$AIC - aic_null
 print(aics[, c("AIC", "delta_AIC_vs_null")])
@@ -2403,9 +2235,13 @@ print(aics[, c("AIC", "delta_AIC_vs_null")])
 
 Results are:
 ```
-      Terms Resid. Df    -2*LL Test Df  Deviance  Pr(>Chi)
-1         1        31 85.36015      NA        NA        NA
-2 anaplasma        30 85.19185    =  1 0.1683011 0.6816261
+        Terms Resid. Df    -2*LL Test Df  Deviance  Pr(>Chi)
+1           1        31 85.36015      NA        NA        NA
+2 haemoplasma        30 84.81430    =  1 0.5458493 0.4600186
+---
+          Terms Resid. Df    -2*LL Test Df   Deviance  Pr(>Chi)
+1             1        31 85.36015      NA         NA        NA
+2 bloodparasite        30 85.27469    =  1 0.08546037 0.7700297
 ---
    Terms Resid. Df    -2*LL Test Df    Deviance  Pr(>Chi)
 1      1        31 85.36015      NA          NA        NA
@@ -2415,11 +2251,19 @@ Results are:
 1     1        31 85.36015      NA       NA         NA
 2   sex        30 81.66861    =  1 3.691544 0.05468897
 ---
-                       AIC delta_AIC_vs_null
-model10_null      89.36015          0.000000
-model10_anaplasma 91.19185          1.831699
-model10_season    91.35333          1.993172
-model10_sex       87.66861          1.691544
+                           AIC delta_AIC_vs_null
+model10_null          89.36015          0.000000
+model10_haemoplasma   90.81430          1.454151
+model10_bloodparasite 91.27469          1.914540
+model10_season        91.35333          1.993172
+model10_sex           87.66861         -1.691544
+```
+
+Generate a QQ-plot of deviance residuals from model11_null to visually assess normality:
+```
+resid_temp <- residuals(model10_null, type = "deviance")
+qqnorm(resid_temp)
+qqline(resid_temp, col = "red", lwd = 1)
 ```
 
 Convert `temperature` to numeric, handle left-censored values (<32°C) for sanalysis in Cd:
@@ -2438,10 +2282,10 @@ temp <- Surv(data_adult_Cd$temperature_numeric,
                   type = "left")
 ```
 
-Fit Gaussian survival regression models to test the effects of `anaplasma`, `season`, `sex` on `temperature`, with (model_11) and without (model_11b) interactions in Cd:
+Fit Gaussian survival regression models to test the effects of `haemoplasma`, `bloodparasite`, `season`, `sex` on `temperature`, with (model_11) and without (model_11b) interactions in Cd:
 ```
-model_11 <- survreg(temp ~ anaplasma * season * sex, data = data_adult_Cd, dist = "gaussian")
-model_11a <- survreg(temp ~ anaplasma + season + sex, data = data_adult_Cd, dist = "gaussian")
+model_11 <- survreg(temp ~ haemoplasma * bloodparasite * season * sex, data = data_adult_Cd, dist = "gaussian")
+model_11a <- survreg(temp ~ haemoplasma + bloodparasite + season + sex, data = data_adult_Cd, dist = "gaussian")
 ```
 
 Compare models using ANOVA and AIC to evaluate the contribution of interaction terms:
@@ -2452,15 +2296,13 @@ AIC(model_11a, model_11)
 
 Results are:
 ```
-> anova(model_11a, model_11, test = "Chisq")
-                     Terms Resid. Df    -2*LL Test Df  Deviance  Pr(>Chi)
-1 anaplasma + season + sex        14 58.14144      NA        NA        NA
-2 anaplasma * season * sex        10 57.99179    =  4 0.1496427 0.9973367
-
-> AIC(model_11a, model_11)
+                                       Terms Resid. Df    -2*LL Test Df Deviance  Pr(>Chi)
+1 haemoplasma + bloodparasite + season + sex        13 58.22666      NA       NA        NA
+2 haemoplasma * bloodparasite * season * sex         2 54.04089    = 11  4.18577 0.9641642
+---
           df      AIC
-model_11a  5 68.14144
-model_11   9 75.99179
+model_11a  6 70.22666
+model_11  17 88.04089
 ```
 
 Perform drop-one-term analysis on the additive model:
@@ -2472,12 +2314,13 @@ Results are:
 ```
 Single term deletions
 Model:
-temp ~ anaplasma + season + sex
-          Df    AIC    LRT Pr(>Chi)
-<none>       68.141                
-anaplasma  1 66.461 0.3192   0.5721
-season     1 66.368 0.2265   0.6341
-sex        1 66.246 0.1050   0.7459
+temp ~ haemoplasma + bloodparasite + season + sex
+              Df    AIC      LRT Pr(>Chi)
+<none>           70.227                  
+haemoplasma    1 68.390 0.163699   0.6858
+bloodparasite  1 68.235 0.008139   0.9281
+season         1 68.269 0.042462   0.8367
+sex            1 68.405 0.178242   0.6729
 ```
 
 Calculate delta AIC for each term to assess its contribution to model fit:
@@ -2489,23 +2332,26 @@ print(res[, c("AIC", "delta_AIC")])
 
 Results are:
 ```
-             AIC delta_AIC
-<none>    68.141    0.0000
-anaplasma 66.461    1.6808
-season    66.368    1.7735
-sex       66.246    1.8950
+                 AIC delta_AIC
+<none>        70.227    0.0000
+haemoplasma   68.390   -1.8363
+bloodparasite 68.235   -1.9919
+season        68.269   -1.9575
+sex           68.405   -1.8218
 ```
 
 Compare the null model (model_null) to univariate models using likelihood ratio tests and AIC:
 ```
 model11_null <- survreg(temp ~ 1, data = data_adult_Cd, dist = "gaussian")
-model11_anaplasma <- survreg(temp ~ anaplasma, data = data_adult_Cd, dist = "gaussian")
+model11_haemoplasma <- survreg(temp ~ haemoplasma, data = data_adult_Cd, dist = "gaussian")
+model11_bloodparasite <- survreg(temp ~ bloodparasite, data = data_adult_Cd, dist = "gaussian")
 model11_season <- survreg(temp ~ season, data = data_adult_Cd, dist = "gaussian")
 model11_sex <- survreg(temp ~ sex, data = data_adult_Cd, dist = "gaussian")
-anova(model11_null, model11_anaplasma, test="Chisq")
+anova(model11_null, model11_haemoplasma, test="Chisq")
+anova(model11_null, model11_bloodparasite, test="Chisq")
 anova(model11_null, model11_season, test="Chisq")
 anova(model11_null, model11_sex, test="Chisq")
-aics <- AIC(model11_null, model11_anaplasma, model11_season, model11_sex)
+aics <- AIC(model11_null, model11_haemoplasma, model11_bloodparasite, model11_season, model11_sex)
 aic_null <- aics["model11_null", "AIC"]
 aics$delta_AIC_vs_null <- aics$AIC - aic_null
 print(aics[, c("AIC", "delta_AIC_vs_null")])
@@ -2513,9 +2359,13 @@ print(aics[, c("AIC", "delta_AIC_vs_null")])
 
 Results are:
 ```
-      Terms Resid. Df    -2*LL Test Df  Deviance  Pr(>Chi)
-1         1        17 58.73649      NA        NA        NA
-2 anaplasma        16 58.43345    =  1 0.3030379 0.5819842
+        Terms Resid. Df    -2*LL Test Df  Deviance  Pr(>Chi)
+1           1        17 58.73649      NA        NA        NA
+2 haemoplasma        16 58.42303    =  1 0.3134589 0.5755654
+---
+          Terms Resid. Df    -2*LL Test Df   Deviance  Pr(>Chi)
+1             1        17 58.73649      NA         NA        NA
+2 bloodparasite        16 58.67821    =  1 0.05828631 0.8092253
 ---
    Terms Resid. Df    -2*LL Test Df   Deviance  Pr(>Chi)
 1      1        17 58.73649      NA         NA        NA
@@ -2525,11 +2375,12 @@ Results are:
 1     1        17 58.73649      NA        NA        NA
 2   sex        16 58.60173    =  1 0.1347589 0.7135479
 ---
-                       AIC delta_AIC_vs_null
-model11_null      62.73649          0.000000
-model11_anaplasma 64.43345          1.696962
-model11_season    64.64685          1.910358
-model11_sex       64.60173          1.865241
+                           AIC delta_AIC_vs_null
+model11_null          62.73649          0.000000
+model11_haemoplasma   64.42303          1.686541
+model11_bloodparasite 64.67821          1.941714
+model11_season        64.64685          1.910358
+model11_sex           64.60173          1.865241
 ```
 
 Generate a QQ-plot of deviance residuals from model11_null to visually assess normality:
@@ -2538,100 +2389,91 @@ resid_temp <- residuals(model11_null, type = "deviance")
 qqnorm(resid_temp)
 qqline(resid_temp, col = "red", lwd = 1)
 ```
-![QQ-plot of residuals model11_null](qqplot_residuals_model_11b.png)
 
-## Step 11. Impact of _Anaplasma_ infections on general health condition 
-Test the association between `anaplasma` and `health_condition` in Bt:
+## Step 11. Impact of Haemoplasma infections on general health condition 
+Test the association between `haemoplasma` and `health_condition` in Bt:
 ```
-table_health_condition_anaplasma_Bt <- table(data_Bt$anaplasma, data_Bt$health_condition)
-table_health_condition_anaplasma_Bt
-fisher.test(table_health_condition_anaplasma_Bt)
+table_health_condition_haemoplasma_Bt <- table(data_Bt$haemoplasma, data_Bt$health_condition)
+table_health_condition_haemoplasma_Bt
+fisher.test(table_health_condition_haemoplasma_Bt)
 ```
 
 Results are:
 ```
-> table_health_condition_anaplasma_Bt
      D  G
-  0  3 31
-  1  7 51
-
-> fisher.test(table_health_condition_anaplasma_Bt)
+  0 10 78
+  1  0  4
+---
 Fisher's Exact Test for Count Data
-data:  table_health_condition_anaplasma_Bt
-p-value = 0.7397
+data:  table_health_condition_haemoplasma_Bt
+p-value = 1
 alternative hypothesis: true odds ratio is not equal to 1
 95 percent confidence interval:
-0.1100479 3.3891841
+ 0.0750502       Inf
 sample estimates:
 odds ratio 
-0.7076468 
+       Inf 
 ```
 
-Test the association between `anaplasma` and `health_condition` in Cd:
+Test the association between `haemoplasma` and `health_condition` in Cd:
 ```
-table_health_condition_anaplasma_Cd <- table(data_Cd$anaplasma, data_Cd$health_condition)
-table_health_condition_anaplasma_Cd
-fisher.test(table_health_condition_anaplasma_Cd)
+table_health_condition_haemoplasma_Cd <- table(data_Cd$haemoplasma, data_Cd$health_condition)
+table_health_condition_haemoplasma_Cd
+fisher.test(table_health_condition_haemoplasma_Cd)
 ```
 
 Results are:
 ```
-> table_health_condition_anaplasma_Cd
      D  G
-  0  4 39
-  1  1 39
-
-> fisher.test(table_health_condition_anaplasma_Cd)
+  0  1 14
+  1  4 64
+---
 Fisher's Exact Test for Count Data
-data:  table_health_condition_anaplasma_Cd
-p-value = 0.3612
+data:  table_health_condition_haemoplasma_Cd
+p-value = 1
 alternative hypothesis: true odds ratio is not equal to 1
 95 percent confidence interval:
-0.3682924 201.7304842
+  0.02167699 12.75597732
 sample estimates:
 odds ratio 
-3.942027 
+  1.140982 
 ```
 
-## Step 12. Impact of _Anaplasma_ infections on female reproductive status 
-Test the association between `anaplasma` and `female_reproductive_status` in Bt:
+## Step 12. Impact of Haemoplasma_ infections on female reproductive status 
+Test the association between `haemoplasma` and `female_reproductive_status` in Bt:
 ```
-table_anaplasma_infection_female_Bt <- table(data_Bt$anaplasma, data_Bt$female_reproductive_status)
-table_anaplasma_infection_female_Bt
-fisher.test(table_anaplasma_infection_female_Bt)
+table_haemoplasma_infection_female_Bt <- table(data_Bt$haemoplasma, data_Bt$female_reproductive_status)
+table_haemoplasma_infection_female_Bt
+fisher.test(table_haemoplasma_infection_female_Bt)
 ```
 
 Results are:
 ```
-> table_anaplasma_infection_female_Bt
     Female lactating with a young Female non pregnant non lactating Pregnant female
-  0                             1                                15               3
-  1                             7                                14               3
-
-> fisher.test(table_anaplasma_infection_female_Bt)
+  0                             8                                27               6
+  1                             0                                 2               0
+---
 Fisher's Exact Test for Count Data
-data:  table_anaplasma_infection_female_Bt
-p-value = 0.1697
+data:  table_haemoplasma_infection_female_Bt
+p-value = 1
 alternative hypothesis: two.sided
 ```
 
-Test the association between `anaplasma` and `female_reproductive_status` in Cd:
+Test the association between `haemoplasma` and `female_reproductive_status` in Cd:
 ```
-table_anaplasma_infection_female_Cd <- table(data_Cd$anaplasma, data_Cd$female_reproductive_status)
-table_anaplasma_infection_female_Cd
-fisher.test(table_anaplasma_infection_female_Cd)
+table_haemoplasma_infection_female_Cd <- table(data_Cd$haemoplasma, data_Cd$female_reproductive_status)
+table_haemoplasma_infection_female_Cd
+fisher.test(table_haemoplasma_infection_female_Cd)
 ```
 
 Results are:
 ```
-> table_anaplasma_infection_female_Cd
-Female lactating with a young Female non pregnant non lactating Pregnant female
-  0                             5                                21               2
-  1                             2                                18               1
-
-> fisher.test(table_anaplasma_infection_female_Cd)
+    Female lactating with a young Female non pregnant non lactating Pregnant female
+  0                             2                                 7               1
+  1                             5                                32               2
+---
 Fisher's Exact Test for Count Data
-data:  table_anaplasma_infection_female_Cd
-p-value = 0.66
+data:  table_haemoplasma_infection_female_Cd
+p-value = 0.5051
 alternative hypothesis: two.sided
 ```
