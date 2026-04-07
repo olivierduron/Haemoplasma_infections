@@ -8,7 +8,7 @@ We used data from two main sources:
 
 -> The epidemiological survey dataset is available here : https://github.com/olivierduron/Haemoplasma_infections/blob/main/xxx
 
--> The epidemiological survey R command lines and scripts are available here : https://github.com/olivierduron/Haemoplasma_infections/blob/main/xxx
+-> The epidemiological survey R command lines and scripts are available [here] (https://github.com/olivierduron/Haemoplasma_infections/blob/main/R_command_lines_and_scripts_haemoplasma_survey.md)
 
 (2) veterinary evaluations conducted on wild brown-throated sloths (*Bradypus tridactylus*) and Linnaeus’s two-toed sloths (*Choloepus didactylus*) to investigate the effects of infection.
 
