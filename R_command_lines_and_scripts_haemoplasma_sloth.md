@@ -1,4 +1,4 @@
-# **R command lines and script**
+# **Haemoplasma veterinary evaluations : R command lines and script**
 
 We analyzed data from 175 wild sloths captured between 1994 and 1995 during the flooding of the Petit Saut Dam (5°03′43″ N, 53°03′00″ O) on the Sinnamary River (French Guiana, South America). The clinical data include the following variables for each examined sloth: 
 - `species` : Sloth species (Bt: *Bradypus tridactylus*; Cd: *Choloepus didactylus*)
