@@ -1,6 +1,6 @@
-# Haemoplasma_infections
+# Hemoplasma_infections
 
-This repository contains the dataset, R command lines, and scripts used for the statistical analyses presented in the manuscript “XXX” by XXX et al. This study focuses on the transmission dynamics of haemotropic mycoplasmas (haemoplasmas) in wildlife in French Guiana, South America.
+This repository contains the dataset, R command lines, and scripts used for the statistical analyses presented in the manuscript “XXX” by XXX et al. This study focuses on the transmission dynamics of haemotropic mycoplasmas (hemoplasmas) in wildlife in French Guiana, South America.
 
 We used data from two main sources:
 
@@ -8,10 +8,10 @@ We used data from two main sources:
 
 -> The epidemiological survey dataset is available XXX
 
--> The epidemiological survey R command lines and scripts are available [here](https://github.com/olivierduron/Haemoplasma_infections/blob/main/R_command_lines_and_scripts_haemoplasma_survey.md).
+-> The epidemiological survey R command lines and scripts are available [here](https://github.com/olivierduron/Hemoplasma_infections/blob/main/R_command_lines_and_scripts_hemoplasma_survey.md).
 
 (2) veterinary evaluations conducted on wild brown-throated sloths (*Bradypus tridactylus*) and Linnaeus’s two-toed sloths (*Choloepus didactylus*) to investigate the effects of infection.
 
--> The veterinary evaluation dataset is available [here](https://github.com/olivierduron/Haemoplasma_sloth_infections/blob/main/data_haemoplasma_sloth.csv).
+-> The veterinary evaluation dataset is available [here](https://github.com/olivierduron/Hemoplasma_sloth_infections/blob/main/data_hemoplasma_sloth.csv).
 
--> The veterinary evaluation R command lines and scripts are available [here](https://github.com/olivierduron/Haemoplasma_sloth_infections/blob/main/R_command_lines_and_scripts_haemoplasma_sloth.md).
+-> The veterinary evaluation R command lines and scripts are available [here](https://github.com/olivierduron/Hemoplasma_sloth_infections/blob/main/R_command_lines_and_scripts_hemoplasma_sloth.md).
