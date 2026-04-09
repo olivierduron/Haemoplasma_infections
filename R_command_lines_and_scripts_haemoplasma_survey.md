@@ -202,3 +202,31 @@ Model 2: cbind(n_infected, n - n_infected) ~ n
 2        24     405.19  1   13.916 0.0001912 ***
 ```
 
+## Step 4. Test infection distribution across mammalian orders
+
+Create a contingency table
+```
+
+df_species <- df_species %>%
+  mutate(infected = ifelse(prevalence > 0, 1, 0))
+df_order <- df_species %>%
+  group_by(order) %>%
+  summarise(
+    infected_species = sum(infected),
+    uninfected_species = n() - sum(infected)
+  )
+contingency_table <- df_order %>%
+  select(infected_species, uninfected_species) %>%
+  as.matrix()
+rownames(contingency_table) <- df_order$order
+
+
+
+
+# Chi-square test of independence
+chi_test <- chisq.test(contingency_table)
+print(chi_test)
+
+# Fisher's exact test (if expected counts are low)
+fisher_test <- fisher.test(contingency_table)
+print(fisher_test)
