@@ -243,7 +243,7 @@ Results are given on the log odds ratio (not the response) scale.
 P value adjustment: tukey method for comparing a family of 6 estimates 
 ```
 
-Predicted prevalence with confidence interval per order
+Predicted infection probabilities with confidence interval per order :
 ```
 emm_prob <- emmeans(mod_glmm, ~ order, type = "response")
 prob_df <- as.data.frame(emm_prob)
@@ -360,8 +360,82 @@ dev.off()
 print(p)
 ```
 
+## Step 4. Test infection distribution across mammalian class sizes
+
+Class size effects on hemoplasma infection prevalence (GLMM with species random effect) : 
+```
+df_body <- data %>%
+  group_by(species, body_size) %>%
+  summarise(
+    n = n(),
+    .groups = "drop"
+  )
+# Full model (body size only)
+mod_body <- glmer(
+  hemoplasma ~ body_size + (1 | species),
+  data = data,
+  family = binomial,
+  control = glmerControl(optimizer = "bobyqa")
+)
+
+# Null model (only random effect)
+mod_null <- glmer(
+  hemoplasma ~ 1 + (1 | species),
+  data = data,
+  family = binomial,
+  control = glmerControl(optimizer = "bobyqa")
+)
+
+# Summary
+summary(mod_body)
+
+# LRT (global test of body_size effect)
+anova(mod_null, mod_body, test = "Chisq")
+
+# AIC comparison
+AIC_table <- data.frame(
+  model = c("body_size + species", "null (species only)"),
+  AIC = c(AIC(mod_body), AIC(mod_null))
+)
+AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
+AIC_table
 
 
+# Post-hoc (if needed)
+library(emmeans)
+emmeans(mod_body, ~ body_size, type = "response")
+
+```
+
+Results are : 
+```
+Data: data
+Models:
+mod_null: hemoplasma ~ 1 + (1 | species)
+mod_body: hemoplasma ~ body_size + (1 | species)
+         npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)
+mod_null    2 416.38 425.22 -206.19    412.38                     
+mod_body    4 417.54 435.22 -204.77    409.54 2.8398  2     0.2417
+
+                model      AIC delta_AIC
+1 body_size + species 417.5406  1.160212
+2 null (species only) 416.3804  0.000000
+```
+
+Predicted infection probabilities  with confidence interval per mammalian class size :
+```
+emm_body <- emmeans(mod_body, ~ body_size, type = "response")
+body_pred <- as.data.frame(emm_body)
+body_pred
+```
+
+Results are : 
+```
+body_size      prob        SE  df   asymp.LCL asymp.UCL
+ Large     0.5705841 0.5767685 Inf 0.013002934 0.9925935
+ Medium    0.0857229 0.0578205 Inf 0.021605423 0.2847425
+ Small     0.0258783 0.0243023 Inf 0.003999273 0.1494869
+```
 
 
 ## Step 3. Hemoplasma prevalence analysis across host species
