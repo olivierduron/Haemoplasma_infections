@@ -368,15 +368,13 @@ order order 416.1937  1.438718
 full   full 414.7550  0.000000
 ```
 
-```
-
 Tukey-adjusted post-hoc comparisons of estimated marginal means :
 ```
 emm <- emmeans(mod_glmm, ~ order)
 pairs(emm, adjust = "tukey")
 ```
 
-Results are:
+Results are :
 ```
  contrast                    estimate   SE  df z.ratio p.value
  Carnivora - Cingulata         1.0345 2.05 Inf   0.505  0.9960
@@ -410,7 +408,7 @@ prob_df <- prob_df %>%
   )
 ```
 
-Results are:
+Results are :
 ```
             order       prob         SE  df   asymp.LCL  asymp.UCL   percent lower_percent upper_percent
 1       Carnivora 0.32124636 0.25153810 Inf 0.047018484 0.81949870 32.124636     4.7018484     81.949870
