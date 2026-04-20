@@ -484,6 +484,67 @@ ggsave(
 )
 ```
 
+## Step 5. Test infection prevalence variation across sex in infected mammalian species (GLMM with species random effect : model #2) : 
+
+Prepare data :
+```
+species_infected <- data_hemoplasma_stat %>%
+  group_by(species) %>%
+  summarise(infected = any(hemoplasma == 1, na.rm = TRUE)) %>%
+  filter(infected) %>%
+  pull(species)
+data_inf <- data_hemoplasma_stat %>%
+  filter(species %in% species_infected)
+data_inf <- data_inf %>%
+  mutate(
+    hemoplasma = as.numeric(as.character(hemoplasma))
+  ) %>%
+  filter(!is.na(sex)) %>%   # IMPORTANT pour LRT
+  group_by(species) %>%
+  mutate(
+    n_sampled = n(),
+    log_n = log(n_sampled)
+  ) %>%
+  ungroup()
+```
+
+GLMM full model :
+```
+mod_sex_inf <- glmer(
+  hemoplasma ~ sex + log_n + (1 | species),
+  family = binomial,
+  data = data_inf,
+  control = glmerControl(optimizer = "bobyqa",
+                         optCtrl = list(maxfun = 1e5))
+)
+summary(mod_sex_inf)
+```
+
+XXX : 
+```
+# ----------------------------
+# 4. Test effet sexe (LRT correct)
+# ----------------------------
+mod_no_sex_inf <- update(mod_sex_inf, . ~ . - sex)
+
+anova(mod_sex_inf, mod_no_sex_inf, test = "Chisq")
+
+# ----------------------------
+# 5. Probabilités interprétables (emmeans)
+# ----------------------------
+emm_sex_inf <- emmeans(mod_sex_inf, ~ sex, type = "response")
+
+prob_sex_df <- as.data.frame(emm_sex_inf)
+
+print(prob_sex_df)
+```
+
+
+
+
+
+
+
 ## Step 5. Test infection prevalence variation across species ecological traits (GLMM with species random effect : model #2) : 
 
 Prepare data (sampling effort) :
