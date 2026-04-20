@@ -78,7 +78,7 @@ library(patchwork)
 
 ## Step 3. Test whether hemoplasma detection depends on species sampling effort
 
-Prepare species-level dataset and visualization : 
+Prepare species-level dataset and visualization (Fig. S1) : 
 ```
 species_summary <- data_hemoplasma_stat %>%
   group_by(species) %>%
@@ -89,31 +89,70 @@ species_summary <- data_hemoplasma_stat %>%
   ungroup() %>%
   mutate(
     n_negative = n_sampled - n_positive,
-    hemoplasma_response = cbind(n_positive, n_negative),
     prevalence = n_positive / n_sampled
-  )
+  ) %>%
+  rowwise() %>%
+  mutate(
+    ci = list(binom.test(n_positive, n_sampled)$conf.int),
+    ci_low = ci[[1]],
+    ci_high = ci[[2]]
+  ) %>%
+  ungroup()
+species_summary
 
-p <- ggplot(species_summary, aes(x = n_sampled, y = prevalence)) +
-  geom_point(size = 3, alpha = 0.7) +
-  geom_smooth(method = "glm",
-              method.args = list(family = "binomial"),
-              se = TRUE,
-              color = "blue") +
-  theme_minimal() +
-  labs(
-    x = "Sample size per species (n)",
-    y = "Hemoplasma prevalence",
-    title = "Effect of sampling effort on hemoplasma detection"
-  )
-
-print(p)
-ggsave(
-  filename = "hemoplasma_sampling_effect.pdf",
-  plot = p,
-  width = 7,
-  height = 5,
-  units = "in"
+#Fig S1
+model <- lm(prevalence ~ n_sampled, data = species_summary)
+newdata <- data.frame(
+  n_sampled = seq(min(species_summary$n_sampled),
+                  max(species_summary$n_sampled),
+                  length.out = 200)
 )
+pred <- predict(model, newdata, interval = "confidence")
+newdata$fit <- pred[, "fit"]
+newdata$lwr <- pred[, "lwr"]
+newdata$upr <- pred[, "upr"]
+p <- ggplot(species_summary, aes(x = n_sampled, y = prevalence)) +
+  geom_ribbon(
+    data = newdata,
+    aes(x = n_sampled, ymin = lwr, ymax = upr),
+    fill = "grey70",
+    alpha = 0.4,
+    inherit.aes = FALSE
+  ) +
+  geom_line(
+    data = newdata,
+    aes(x = n_sampled, y = fit),
+    color = "blue",
+    linewidth = 1,
+    inherit.aes = FALSE
+  ) +
+    geom_point(size = 3, alpha = 0.7) +
+    theme_minimal() +
+   labs(
+    x = "Sample size per species",
+    y = "Hemoplasma prevalence"
+  )
+print(p)
+pdf("Fig_S1_hemoplasma_sampling_effect.pdf", width = 7, height = 5)
+print(p)
+dev.off()
+```
+
+Results are: 
+```
+# A tibble: 44 × 8
+   species                 n_sampled n_positive n_negative prevalence ci_low ci_high
+ 1 Alouatta_macconnelli        22         20          2     0.909   0.708    0.989 
+ 2 Bradypus_tridactylus       108          4        104     0.0370  0.0102   0.0921
+ 3 Cabassous_unicinctus         2          0          2     0       0        0.842 
+ 4 Caluromys_philander          5          0          5     0       0        0.522 
+ 5 Cebus_apella                 1          0          1     0       0        0.975 
+ 6 Choloepus_didactylus        90         72         18     0.8     0.702    0.877 
+ 7 Coendou_melanurus            1          0          1     0       0        0.975 
+ 8 Coendou_sp                   3          1          2     0.333   0.00840  0.906 
+ 9 Cyclopes_didactylus          1          0          1     0       0        0.975 
+10 Dasypus_novemcinctus        15          5         10     0.333   0.118    0.616 
+# 34 more rows
 ```
 
 Spearman correlation test :
