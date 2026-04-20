@@ -525,9 +525,9 @@ summary(mod2_sex_inf)
 Model selection (LRT) :
 ```
 mod2_no_sex <- update(mod2_sex_inf, . ~ . - sex)
-mod_no_logn  <- update(mod2_sex_inf, . ~ . - log_n)
+mod2_no_logn  <- update(mod2_sex_inf, . ~ . - log_n)
 anova(mod2_sex_inf, mod2_no_sex, test = "Chisq")
-anova(mod2_sex_inf, mod_no_logn, test = "Chisq")
+anova(mod2_sex_inf, mod2_no_logn, test = "Chisq")
 ```
 
 Results are :
@@ -552,7 +552,7 @@ mod2_sex_inf    4 287.49 302.82 -139.75    279.49 0.0018  1     0.9658
 
 AIC comparison :
 ```
-AIC_table <- AIC(mod2_sex_inf, mod2_no_sex, mod_no_logn)
+AIC_table <- AIC(mod2_sex_inf, mod2_no_sex, mod2_no_logn)
 AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
 AIC_table
 ```
@@ -565,7 +565,9 @@ mod2_no_sex   3 288.2876  2.793350
 mod_no_logn   3 285.4942  0.000000
 ```
 
-SIMPLIFICATION A FAIRE!
+
+SIMPLIFICATION A REVOIR !!!
+
 
 Estimated marginal means (emmeans): 
 ```
