@@ -1105,212 +1105,6 @@ Results:
 ### Interpretation
 Marginal means showed broadly overlapping confidence intervals across all ecological trait categories. Tukey-adjusted pairwise comparisons revealed no significant differences among levels of vertical stratum, diet, or sociality, and only a marginal diurnal–nocturnal contrast (_p_ = 0.052).
 
-
-
-
-
-
-
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-Fit models : 
-```
-# Null model (random effect only)
-mod_null <- glmer(
-  hemoplasma ~ 1 + (1 | species),
-  family = binomial,
-  data = data_hemoplasma_stat
-)
-
-# Sampling effort model
-mod_sampling <- glmer(
-  hemoplasma ~ log_n + (1 | species),
-  family = binomial,
-  data = data_hemoplasma_stat,
-  control = glmerControl(optimizer = "bobyqa",
-                         optCtrl = list(maxfun = 1e5))
-)
-
-# Full ecological model
-mod_traits_full <- glmer(
-  hemoplasma ~ log_n + vertical_stratum + activity + diet + sociality + (1 | species),
-  family = binomial,
-  data = data_hemoplasma_stat,
-  control = glmerControl(optimizer = "bobyqa",
-                         optCtrl = list(maxfun = 2e5))
-)
-```
-
-Model summaries: 
-```
-summary(mod_traits_full)
-```
-
-Results are: 
-```
-Generalized linear mixed model fit by maximum likelihood (Laplace Approximation) ['glmerMod']
- Family: binomial  ( logit )
-Formula: hemoplasma ~ log_n + vertical_stratum + activity + diet + sociality +      (1 | species)
-   Data: data_hemoplasma_stat
-Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e+05))
-
-      AIC       BIC    logLik -2*log(L)  df.resid 
-    421.8     466.0    -200.9     401.8       604 
-
-Scaled residuals: 
-    Min      1Q  Median      3Q     Max 
--2.9825 -0.2388 -0.1417  0.1252  4.8857 
-
-Random effects:
- Groups  Name        Variance Std.Dev.
- species (Intercept) 4.676    2.162   
-Number of obs: 614, groups:  species, 44
-
-Fixed effects:
-                       Estimate Std. Error z value Pr(>|z|)  
-(Intercept)             -0.2649     2.4589  -0.108   0.9142  
-log_n                    0.7135     0.3841   1.858   0.0632 .
-vertical_stratumGround   0.2483     1.1325   0.219   0.8265  
-vertical_stratumMixed   -1.9842     2.2823  -0.869   0.3846  
-activityNocturnal       -3.1289     1.6083  -1.946   0.0517 .
-dietInsectivore         -1.2706     2.7936  -0.455   0.6492  
-dietOmnivore            -1.1872     2.4231  -0.490   0.6242  
-dietPhytophage          -0.7991     2.6323  -0.304   0.7615  
-socialitySolitary       -0.2983     1.4131  -0.211   0.8328  
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Correlation of Fixed Effects:
-            (Intr) log_n  vrtc_G vrtc_M actvtN dtInsc dtOmnv dtPhyt
-log_n       -0.137                                                 
-vrtcl_strtG -0.500 -0.008                                          
-vrtcl_strtM -0.284  0.007  0.324                                   
-actvtyNctrn  0.362 -0.142 -0.270 -0.082                            
-dietInsctvr -0.555 -0.101  0.112  0.008 -0.507                     
-dietOmnivor -0.735 -0.206  0.292  0.046 -0.586  0.781              
-dietPhytphg -0.812 -0.170  0.460  0.190 -0.551  0.714  0.894       
-socltySltry -0.621  0.013  0.209  0.273 -0.530  0.264  0.392  0.460
-```
-
-Likelihood Ratio Tests (LRT) :
-```
-anova(mod_null, mod_sampling, mod_traits_full, test = "Chisq")
-```
-
-Results:
-```
-Data: data_hemoplasma_stat
-Models:
-mod_null: hemoplasma ~ 1 + (1 | species)
-mod_sampling: hemoplasma ~ log_n + (1 | species)
-mod_traits_full: hemoplasma ~ log_n + vertical_stratum + activity + diet + sociality + (1 | species)
-                npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)
-mod_null           2 416.38 425.22 -206.19    412.38                     
-mod_sampling       3 416.94 430.20 -205.47    410.94 1.4399  1     0.2302
-mod_traits_full   10 421.76 465.96 -200.88    401.76 9.1816  7     0.2399
-```
-
-AIC comparison : 
-```
-model_set <- list(
-  null = mod_null,
-  sampling = mod_sampling,
-  traits = mod_traits_full
-)
-AIC_table <- data.frame(
-  model = names(model_set),
-  AIC = sapply(model_set, AIC)
-)
-AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
-AIC_table
-```
-
-Results are:
-```
-            model      AIC delta_AIC
-null         null 416.3804 0.0000000
-sampling sampling 416.9406 0.5601158
-traits     traits 421.7590 5.3785552
-```
-
-Single-term deletion:
-```
-mod_drop <- drop1(mod_traits_full, test = "Chisq")
-mod_drop
-```
-
-Results are:
-```
-Single term deletions
-Model:
-hemoplasma ~ log_n + vertical_stratum + activity + diet + sociality + 
-    (1 | species)
-                 npar    AIC    LRT Pr(Chi)  
-<none>                421.76                 
-log_n               1 423.37 3.6160 0.05723 .
-vertical_stratum    2 418.86 1.0977 0.57760  
-activity            1 423.09 3.3279 0.06812 .
-diet                3 416.11 0.3554 0.94930  
-sociality           1 419.80 0.0445 0.83297  
-```
-
-Predicted probabilities and 95% CI:
-```
-emm_stratum <- emmeans(mod_traits_full, ~ vertical_stratum, type = "response")
-prob_stratum <- as.data.frame(emm_stratum) %>%
-  mutate(
-    percent = prob * 100,
-    lower = asymp.LCL * 100,
-    upper = asymp.UCL * 100
-  )
-emm_activity <- emmeans(mod_traits_full, ~ activity, type = "response")
-prob_activity <- as.data.frame(emm_activity) %>%
-  mutate(
-    percent = prob * 100,
-    lower = asymp.LCL * 100,
-    upper = asymp.UCL * 100
-  )
-emm_diet <- emmeans(mod_traits_full, ~ diet, type = "response")
-prob_diet <- as.data.frame(emm_diet) %>%
-  mutate(
-    percent = prob * 100,
-    lower = asymp.LCL * 100,
-    upper = asymp.UCL * 100
-  )
-emm_social <- emmeans(mod_traits_full, ~ sociality, type = "response")
-prob_social <- as.data.frame(emm_social) %>%
-  mutate(
-    percent = prob * 100,
-    lower = asymp.LCL * 100,
-    upper = asymp.UCL * 100
-  )
-prob_stratum
-prob_activity
-prob_diet
-prob_social
-```
-
-Results are: 
-```
-  vertical_stratum       prob        SE  df   asymp.LCL asymp.UCL   percent      lower    upper
-1           Canopy 0.41118131 0.2977796 Inf 0.058983632 0.8861024 41.118131  5.8983632 88.61024
-2           Ground 0.47232960 0.2609295 Inf 0.103147778 0.8744772 47.232960 10.3147778 87.44772
-3            Mixed 0.08759731 0.1765953 Inf 0.001261804 0.8794559  8.759731  0.1261804 87.94559
-
-   activity       prob         SE  df   asymp.LCL asymp.UCL   percent      lower    upper
-1   Diurnal 0.65174222 0.32496720 Inf 0.101611655 0.9687158 65.174222 10.1611655 96.87158
-2 Nocturnal 0.07570553 0.09187215 Inf 0.006209163 0.5177779  7.570553  0.6209163 51.77779
-
-         diet      prob        SE  df   asymp.LCL asymp.UCL  percent     lower    upper
-1   Carnivore 0.4691611 0.5834336 Inf 0.008880171 0.9886597 46.91611 0.8880171 98.86597
-2 Insectivore 0.1987451 0.3171466 Inf 0.004978985 0.9247860 19.87451 0.4978985 92.47860
-3    Omnivore 0.2123682 0.1722342 Inf 0.034594109 0.6698367 21.23682 3.4594109 66.98367
-4  Phytophage 0.2844348 0.2717129 Inf 0.028219860 0.8447450 28.44348 2.8219860 84.47450
-
-  sociality      prob        SE  df  asymp.LCL asymp.UCL  percent    lower    upper
-1     Group 0.3124687 0.3073413 Inf 0.02679051 0.8823988 31.24687 2.679051 88.23988
-2  Solitary 0.2522081 0.2257055 Inf 0.03129654 0.7788041 25.22081 3.129654 77.88041
-```
-
 Create a plot of hemoplasma prevalence by species ecological traits :
 ```
 df_species <- data_hemoplasma_stat %>%
@@ -1350,7 +1144,6 @@ make_panel <- function(df, pred, var, palette, title){
 
   ggplot() +
 
-    # species points
     geom_jitter(
       data = df,
       aes(x = .data[[var]], y = prevalence,
@@ -1360,7 +1153,6 @@ make_panel <- function(df, pred, var, palette, title){
       na.rm = TRUE
     ) +
 
-    # LOWER CI
     geom_segment(
       data = pred,
       aes(
@@ -1374,7 +1166,6 @@ make_panel <- function(df, pred, var, palette, title){
       na.rm = TRUE
     ) +
 
-    # MEAN
     geom_segment(
       data = pred,
       aes(
@@ -1388,7 +1179,6 @@ make_panel <- function(df, pred, var, palette, title){
       na.rm = TRUE
     ) +
 
-    # UPPER CI
     geom_segment(
       data = pred,
       aes(
@@ -1428,11 +1218,243 @@ pC <- make_panel(df_species, prob_diet, "diet", diet_colors, "C")
 pD <- make_panel(df_species, prob_social, "sociality", social_colors, "D")
 figure1 <- (pA | pB) / (pC | pD)
 figure1
-pdf(file = file.path(getwd(), "Figure1_Hemoplasma.pdf"),
+pdf(file = file.path(getwd(), "Figure2_Hemoplasma_ecological_traits.pdf"),
     width = 12, height = 9, useDingbats = FALSE)
 print(figure1)
 dev.off()
 ```
+
+## Step 7. Association between hemoplasma infection and co-infecting blood parasites (GLMM Model 4)
+### Data preparation
+We tested whether `hemoplasma` infection probability is associated with co-infection by other blood parasites, including `anaplasmataceae`, `apicomplexa`, `trypanosoma`, and `filaria`. Species-level sampling effort was accounted for using `log_n`, and species identity was included as a random effect.
+```
+data_hemoplasma_stat <- data_hemoplasma_stat %>%
+  group_by(species) %>%
+  mutate(
+    n_sampled = n(),
+    log_n = log(n_sampled)
+  ) %>%
+  ungroup()
+
+data_coinf <- data_hemoplasma_stat %>%
+  filter(
+    !is.na(hemoplasma),
+    !is.na(anaplasmataceae),
+    !is.na(apicomplexa),
+    !is.na(trypanosoma),
+    !is.na(filaria)
+  )
+```
+
+## GLMM (Model 4)
+This model tests whether `hemoplasma` infection probability is associated with co-infection by other blood parasites.
+```
+mod4_full <- glmer(
+  hemoplasma ~ anaplasmataceae + apicomplexa + trypanosoma + filaria +
+    log_n + (1 | species),
+  family = binomial,
+  data = data_coinf,
+  control = glmerControl(
+    optimizer = "bobyqa",
+    optCtrl = list(maxfun = 2e5)
+  )
+)
+```
+
+## Model term significance testing
+
+Model terms were evaluated using likelihood ratio tests via single-term deletions.
+```
+res4 <- drop1(mod4_full, test = "Chisq")
+res4
+```
+
+Results :
+```
+Single term deletions
+Model:
+hemoplasma ~ anaplasmataceae + apicomplexa + trypanosoma + filaria + 
+    log_n + (1 | species)
+                npar    AIC    LRT  Pr(Chi)   
+<none>               120.13                   
+anaplasmataceae    1 122.84 4.7040 0.030093 * 
+apicomplexa        1 118.14 0.0109 0.916691   
+trypanosoma        1 120.53 2.3976 0.121525   
+filaria            1 118.14 0.0042 0.948289   
+log_n              1 127.77 9.6327 0.001911 **
+```
+
+## Interpretation
+`anaplasmataceae` infection was significantly associated with `hemoplasma` infection probability (χ² = 4.70, _p_ = 0.030), with higher infection probability in co-infected hosts. Sampling effort also had a strong effect (χ² = 9.63, _p_ = 0.0019), indicating lower detection probability with increasing sample size. No significant effects were detected for `apicomplexa`, `trypanosoma`, or `filaria` (all _p_ > 0.10).
+
+## Model comparison with null and univariate models
+```
+mod4_null <- glmer(
+  hemoplasma ~ 1 + (1 | species),
+  family = binomial,
+  data = data_coinf,
+  control = glmerControl(
+    optimizer = "bobyqa",
+    optCtrl = list(maxfun = 2e5)
+  )
+)
+
+mod4_anaplasma <- glmer(
+  hemoplasma ~ anaplasmataceae + (1 | species),
+  family = binomial,
+  data = data_coinf,
+  control = glmerControl(optimizer = "bobyqa",
+                         optCtrl = list(maxfun = 2e5))
+)
+
+mod4_apicomplexa <- glmer(
+  hemoplasma ~ apicomplexa + (1 | species),
+  family = binomial,
+  data = data_coinf,
+  control = glmerControl(optimizer = "bobyqa",
+                         optCtrl = list(maxfun = 2e5))
+)
+
+mod4_trypanosoma <- glmer(
+  hemoplasma ~ trypanosoma + (1 | species),
+  family = binomial,
+  data = data_coinf,
+  control = glmerControl(optimizer = "bobyqa",
+                         optCtrl = list(maxfun = 2e5))
+)
+
+mod4_filaria <- glmer(
+  hemoplasma ~ filaria + (1 | species),
+  family = binomial,
+  data = data_coinf,
+  control = glmerControl(optimizer = "bobyqa",
+                         optCtrl = list(maxfun = 2e5))
+)
+
+anova(mod4_null, mod4_anaplasma, test = "Chisq")
+anova(mod4_null, mod4_apicomplexa, test = "Chisq")
+anova(mod4_null, mod4_trypanosoma, test = "Chisq")
+anova(mod4_null, mod4_filaria, test = "Chisq")
+
+aics <- AIC(mod4_null,
+            mod4_anaplasma,
+            mod4_apicomplexa,
+            mod4_trypanosoma,
+            mod4_filaria)
+
+aic_null <- aics["mod4_null", "AIC"]
+aics$delta_AIC_vs_null <- aics$AIC - aic_null
+aics[, c("AIC", "delta_AIC_vs_null")]
+```
+
+Results : 
+```
+> anova(mod4_null, mod4_anaplasma, test = "Chisq")
+Data: data_coinf
+Models:
+mod4_null: hemoplasma ~ 1 + (1 | species)
+mod4_anaplasma: hemoplasma ~ anaplasmataceae + (1 | species)
+               npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)  
+mod4_null         2 125.55 131.92 -60.777    121.55                       
+mod4_anaplasma    3 124.09 133.63 -59.044    118.09 3.4647  1    0.06269 .
+
+> anova(mod4_null, mod4_apicomplexa, test = "Chisq")
+Data: data_coinf
+Models:
+mod4_null: hemoplasma ~ 1 + (1 | species)
+mod4_apicomplexa: hemoplasma ~ apicomplexa + (1 | species)
+                 npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)
+mod4_null           2 125.55 131.92 -60.777    121.55                     
+mod4_apicomplexa    3 127.47 137.02 -60.736    121.47 0.0816  1     0.7751
+
+> anova(mod4_null, mod4_trypanosoma, test = "Chisq")
+Data: data_coinf
+Models:
+mod4_null: hemoplasma ~ 1 + (1 | species)
+mod4_trypanosoma: hemoplasma ~ trypanosoma + (1 | species)
+                 npar    AIC    BIC  logLik -2*log(L) Chisq Df Pr(>Chisq)
+mod4_null           2 125.55 131.92 -60.777    121.55                    
+mod4_trypanosoma    3 126.22 135.77 -60.112    120.22 1.329  1      0.249
+
+> anova(mod4_null, mod4_filaria, test = "Chisq")
+Data: data_coinf
+Models:
+mod4_null: hemoplasma ~ 1 + (1 | species)
+mod4_filaria: hemoplasma ~ filaria + (1 | species)
+             npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)
+mod4_null       2 125.55 131.92 -60.777    121.55                     
+mod4_filaria    3 127.55 137.10 -60.776    121.55 0.0018  1     0.9662
+
+                      AIC delta_AIC_vs_null
+mod4_null        125.5536         0.0000000
+mod4_anaplasma   124.0889        -1.4646561
+mod4_apicomplexa 127.4719         1.9183628
+mod4_trypanosoma 126.2246         0.6710417
+mod4_filaria     127.5518         1.9981994
+```
+
+## Interpretation
+Model comparisons confirmed a weak but consistent support for an association between `hemoplasma` infection and `anaplasmataceae` co-infection (ΔAIC ≈ −1.46), whereas no improvement in model fit was observed for `apicomplexa`, `trypanosoma`, or `filaria`.
+
+## Post-hoc analysis of differences between blood parasites (model-based pairwise comparisons)
+```
+emm_anaplasma <- emmeans(mod4_full, ~ anaplasmataceae, type = "response")
+emm_apicomplexa <- emmeans(mod4_full, ~ apicomplexa, type = "response")
+emm_trypanosoma <- emmeans(mod4_full, ~ trypanosoma, type = "response")
+emm_filaria <- emmeans(mod4_full, ~ filaria, type = "response")
+
+emm_anaplasma
+pairs(emmeans(mod4_full, ~ anaplasmataceae), adjust = "tukey")
+emm_apicomplexa
+pairs(emmeans(mod4_full, ~ apicomplexa), adjust = "tukey")
+emm_trypanosoma
+pairs(emmeans(mod4_full, ~ trypanosoma), adjust = "tukey")
+emm_filaria
+pairs(emmeans(mod4_full, ~ filaria), adjust = "tukey")
+```
+
+Results : 
+```
+ anaplasmataceae   prob     SE  df asymp.LCL asymp.UCL
+ 0               0.0635 0.0688 Inf   0.00695     0.396
+ 1               0.1878 0.1480 Inf   0.03345     0.607
+
+ contrast                            estimate   SE  df z.ratio p.value
+ anaplasmataceae0 - anaplasmataceae1    -1.23 0.61 Inf  -2.013  0.0442
+
+ apicomplexa  prob     SE  df asymp.LCL asymp.UCL
+ 0           0.117 0.0844 Inf    0.0263     0.396
+ 1           0.105 0.1370 Inf    0.0068     0.669
+
+ contrast                    estimate   SE  df z.ratio p.value
+ apicomplexa0 - apicomplexa1    0.123 1.16 Inf   0.106  0.9158
+
+ trypanosoma   prob     SE  df asymp.LCL asymp.UCL
+ 0           0.2947 0.1350 Inf   0.10506     0.598
+ 1           0.0361 0.0583 Inf   0.00141     0.499
+
+ contrast                    estimate  SE  df z.ratio p.value
+ trypanosoma0 - trypanosoma1     2.41 1.5 Inf   1.608  0.1079
+
+ filaria  prob    SE  df asymp.LCL asymp.UCL
+ 0       0.113 0.100 Inf    0.0178     0.475
+ 1       0.109 0.111 Inf    0.0128     0.537
+
+ contrast            estimate    SE  df z.ratio p.value
+ filaria0 - filaria1   0.0426 0.657 Inf   0.065  0.9482
+
+Results are averaged over the levels of: anaplasmataceae, apicomplexa, trypanosoma, log_n 
+Confidence level used: 0.95 
+Intervals are back-transformed from the logit scale 
+```
+
+## Interpretation
+`hemoplasma` infection probability was higher in hosts infected by `anaplasmataceae` (0.19 vs 0.06; _p_ = 0.044), while no significant differences were detected for `apicomplexa`, `trypanosoma`, or `filaria` (all _p _> 0.10), with strongly overlapping confidence intervals across groups.
+
+## Create a plot of hemoplasma prevalence by co-infecting blood parasites
+A FAIRE !!!
+
+
 
 yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 
