@@ -167,26 +167,20 @@ sample estimates:
      rho 
 0.312126 
 ```
---> Hemoplasma prevalence increased weakly but significantly with sample size per species, suggesting that prevalence in mammals is likely underestimated in less sampled species.
 
-## Step 4. Test whether hemoplasma infection prevalence varies across mammalian orders (GLMM model 1) 
+## Interpretation
+Hemoplasma prevalence increased weakly but significantly with sample size per species, suggesting that prevalence in mammals is likely underestimated in less sampled species.
 
-Create and visualize a contingency table of hemoplasma infection by mammalian order :
+## Step 4. Variation in hemoplasma infection across mammalian orders (GLMM model 1) 
+
+## Contingency table
 ```
-df_species <- data_hemoplasma_stat %>%
-  group_by(species) %>%
-  summarise(
-    n = n(),                             
-    n_infected = sum(hemoplasma == 1, na.rm = TRUE), 
-    prevalence = n_infected / n  
-  )
 df_species <- data_hemoplasma_stat %>%
   group_by(species, order) %>%
   summarise(
     n = n(),
     n_infected = sum(as.numeric(as.character(hemoplasma)) == 1, na.rm = TRUE),
-    prevalence = n_infected / n,
-    infected = ifelse(n_infected > 0, 1, 0),
+    infected = as.integer(n_infected > 0),
     .groups = "drop"
   )
 df_order <- df_species %>%
@@ -196,9 +190,7 @@ df_order <- df_species %>%
     uninfected_species = n() - sum(infected),
     .groups = "drop"
   )
-contingency_table <- df_order %>%
-  select(infected_species, uninfected_species) %>%
-  as.matrix()
+contingency_table <- as.matrix(df_order[, c("infected_species", "uninfected_species")])
 rownames(contingency_table) <- df_order$order
 contingency_table
 ```
@@ -214,19 +206,39 @@ Primates                       2                  3
 Rodentia                       8                 11
 ```
 
-Prepare dataset: Compute sample size (`log_n`) per species for GLMM adjustment :
+## GLMM preparation
+Sampling effort is included as a covariate (log-transformed number of individuals per species) :
 ```
 data_hemoplasma_stat <- data_hemoplasma_stat %>%
-  mutate(
-    hemoplasma = as.numeric(as.character(hemoplasma))
-  ) %>%
   group_by(species) %>%
   mutate(
     n_sampled = n(),
     log_n = log(n_sampled)
   ) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(hemoplasma = as.numeric(as.character(hemoplasma)))
 ```
+
+## GLMM (Model 1)
+```
+mod1_full <- glmer(
+  hemoplasma ~ order + log_n + (1 | species),
+  family = binomial,
+  data = data_hemoplasma_stat,
+  control = glmerControl(
+    optimizer = "bobyqa",
+    optCtrl = list(maxfun = 1e5)
+  )
+)
+```
+
+## Model objective
+This model tests whether `hemoplasma` infection probability varies among mammalian orders (`order`) while controlling for differences in sampling effort (`log_n`) and accounting for species-level random effects (1 | species).
+
+
+
+
+
 
 Fit a GLMM to test the effects of `order` and `log_n` on 'hemoplasma', with `species` as a random effect :
 ```
