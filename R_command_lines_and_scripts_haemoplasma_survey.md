@@ -478,7 +478,7 @@ ggsave(
 )
 ```
 
-## Step 5. Variation in hemoplasma infection across sex in infected mammalian species (GLMM model 2)
+## Step 5. Variation in hemoplasma infection across sex within species where infection was detected (GLMM model 2)
 
 ### Data preparation
 We restricted the analysis to mammalian species with at least one infected individual, in order to test sex effects within relevant host species.
@@ -486,6 +486,7 @@ We restricted the analysis to mammalian species with at least one infected indiv
 data_sex <- data_hemoplasma_stat[
   complete.cases(data_hemoplasma_stat[, c("hemoplasma", "sex", "species")]),
 ]
+
 species_infected_sex <- data_sex %>%
   group_by(species) %>%
   summarise(infected = any(hemoplasma == 1, na.rm = TRUE)) %>%
@@ -495,7 +496,6 @@ species_infected_sex <- data_sex %>%
 data_inf_sex <- data_sex %>%
   filter(species %in% species_infected_sex) %>%
   mutate(hemoplasma = as.numeric(as.character(hemoplasma))) %>%
-  filter(!is.na(sex)) %>%  # required for LRT consistency
   group_by(species) %>%
   mutate(
     n_sampled = n(),
@@ -537,7 +537,9 @@ log_n     1 277.51 0.44085  0.5067
 ```
 
 ### Interpretation
-blabla
+No significant effect of `sex` on `hemoplasma` infection probability was detected (χ² = 2.52, _p_ = 0.11).
+
+Sampling effort (`log_n`) had no detectable effect (p = 0.51).
 
 ### Model comparison with null and univariate models
 ```
@@ -607,7 +609,9 @@ mod2_log_n 279.5878         1.5193843
 ```
 
 ### Interpretation (model comparison)
-blabla
+The inclusion of `sex` or `log_n` did not improve model fit compared to the null model (_p_ = 0.11 and 0.49, respectively).
+
+AIC comparison supported these results, with only a minimal improvement for the model including `sex` (ΔAIC < 1), indicating weak support for this predictor. Overall, results provide no clear evidence for sex-biased hemoplasma infection.
 
 ### Post-hoc analysis of differences between sex in infected species (model-based pairwise comparisons)
 
@@ -633,66 +637,193 @@ $contrasts
 ```
 
 ### Interpretation
-blabla
+Predicted infection probabilities were slightly higher in males than in females, but this difference was not statistically significant (_p_ = 0.11).
+
+### Species-level sex bias in hemoplasma infection (Fisher exact tests)
+To test whether `hemoplasma` infection differs between males and females within host `species`, we restricted analyses to infected `species` that had at least 20 sexed individuals to ensure minimum statistical power.
 
 
-
-
-
-
+### Data preparation
 ```
-mod2_no_sex <- update(mod2_sex_inf, . ~ . - sex)
-mod2_no_logn  <- update(mod2_sex_inf, . ~ . - log_n)
-anova(mod2_sex_inf, mod2_no_sex, test = "Chisq")
-anova(mod2_sex_inf, mod2_no_logn, test = "Chisq")
-```
+species_infected <- data_hemoplasma_stat %>%
+  mutate(hemoplasma = as.numeric(as.character(hemoplasma))) %>%
+  group_by(species) %>%
+  summarise(any_infected = any(hemoplasma == 1, na.rm = TRUE)) %>%
+  filter(any_infected) %>%
+  pull(species)
 
-Results are :
-```
-> anova(mod2_sex_inf, mod2_no_sex, test = "Chisq")
-Data: data_inf
-Models:
-mod2_no_sex: hemoplasma ~ log_n + (1 | species)
-mod2_sex_inf: hemoplasma ~ sex + log_n + (1 | species)
-             npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)  
-mod2_no_sex     3 288.29 299.78 -141.14    282.29                       
-mod2_sex_inf    4 287.49 302.82 -139.75    279.49 2.7952  1    0.09455 .
-> anova(mod2_sex_inf, mod_no_logn, test = "Chisq")
-Data: data_inf
-Models:
-mod_no_logn: hemoplasma ~ sex + (1 | species)
-mod2_sex_inf: hemoplasma ~ sex + log_n + (1 | species)
-             npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)
-mod_no_logn     3 285.49 296.99 -139.75    279.49                     
-mod2_sex_inf    4 287.49 302.82 -139.75    279.49 0.0018  1     0.9658
-```
+data_test <- data_hemoplasma_stat %>%
+  filter(
+    species %in% species_infected,
+    !is.na(sex)
+  ) %>%
+  mutate(hemoplasma = as.numeric(as.character(hemoplasma)))
 
-AIC comparison :
-```
-AIC_table <- AIC(mod2_sex_inf, mod2_no_sex, mod2_no_logn)
-AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
-AIC_table
+species_keep <- data_test %>%
+  group_by(species) %>%
+  summarise(n_sexed = n()) %>%
+  filter(n_sexed >= 20) %>%
+  pull(species)
+
+data_fisher <- data_test %>%
+  filter(species %in% species_keep)
+  
+write.csv(species_keep,
+          "species_used_fisher_sex_bias.csv",
+          row.names = FALSE)
+
+species_keep
 ```
 
-Results are :
+Results (list of infected `species` that had at least 20 sexed individuals) :
 ```
-             df      AIC delta_AIC
-mod2_sex_inf  4 287.4924  1.998161
-mod2_no_sex   3 288.2876  2.793350
-mod_no_logn   3 285.4942  0.000000
+[1] Bradypus_tridactylus  Choloepus_didactylus  Didelphis_marsupialis Saguinus_midas  
 ```
 
-Estimated marginal means (emmeans): 
+### Fisher exact tests per species
 ```
-emm_sex_inf <- emmeans(mod_sex_inf, ~ sex, type = "response")
-prob_sex_df <- as.data.frame(emm_sex_inf)
-print(prob_sex_df)
+fisher_results <- data_fisher %>%
+  group_by(species) %>%
+  summarise(
+    tab = list(table(sex, hemoplasma)),
+    .groups = "drop"
+  ) %>%
+  rowwise() %>%
+  mutate(
+    fisher = list(
+      if (all(dim(tab) == c(2, 2))) {
+        fisher.test(tab)
+      } else {
+        NULL
+      }
+    ),
+    p_value = if (!is.null(fisher)) fisher$p.value else NA_real_,
+    odds_ratio = if (!is.null(fisher)) as.numeric(fisher$estimate) else NA_real_
+  ) %>%
+  ungroup() %>%
+  select(species, p_value, odds_ratio)
 ```
 
-Results are : 
+### Multiple testing correction (FDR)
 ```
-xxxxxx
+fisher_results <- fisher_results %>%
+  mutate(
+    p_adj = p.adjust(p_value, method = "fdr")
+  ) %>%
+  arrange(p_adj)
+
+fisher_results
 ```
+
+Results : 
+```
+# A tibble: 4 × 4
+  species               p_value odds_ratio  p_adj
+  <fct>                   <dbl>      <dbl>  <dbl>
+1 Didelphis_marsupialis   0.176      3.14   0.527
+2 Choloepus_didactylus    0.573      1.48   0.860
+3 Bradypus_tridactylus    1          0.874  1    
+4 Saguinus_midas         NA         NA     NA    
+```
+
+### Interpretation
+```
+Fisher exact tests performed separately for each species (restricted to species with ≥20 sexed individuals and at least one infected individual) revealed no significant sex differences in hemoplasma infection after FDR correction. For _Saguinus midas_, the test could not be computed due to insufficient data structure in the contingency table (ie, all individuals are infected).
+```
+
+### Create a plot of hemoplasma prevalence by infected species
+species_infected <- data_hemoplasma_stat %>%
+  mutate(hemoplasma = as.numeric(as.character(hemoplasma))) %>%
+  group_by(species) %>%
+  summarise(any_infected = any(hemoplasma == 1, na.rm = TRUE)) %>%
+  filter(any_infected) %>%
+  pull(species)
+
+data_clean <- data_hemoplasma_stat %>%
+  filter(
+    species %in% species_infected,
+    !is.na(sex)
+  ) %>%
+  mutate(hemoplasma = as.numeric(as.character(hemoplasma)))
+
+species_keep <- data_clean %>%
+  group_by(species) %>%
+  summarise(n_sexed = n()) %>%
+  filter(n_sexed >= 20) %>%
+  pull(species)
+
+df_plot <- data_clean %>%
+  filter(species %in% species_keep) %>%
+  group_by(species, sex) %>%
+  summarise(
+    n = n(),
+    n_infected = sum(hemoplasma == 1, na.rm = TRUE),
+    prevalence = n_infected / n,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    species_sex = paste(species, sex)
+  )
+
+species_order <- unique(df_plot$species)
+
+levels_ordered <- unlist(lapply(species_order, function(sp) {
+  c(paste(sp, "M"),
+    paste(sp, "F"),
+    paste0("gap_", sp))
+}))
+
+df_plot$species_sex <- factor(df_plot$species_sex,
+                              levels = levels_ordered)
+
+species_cols <- setNames(hue_pal()(length(species_order)), species_order)
+
+fill_cols <- c()
+for (sp in species_order) {
+  fill_cols[paste(sp, "M")] <- species_cols[sp]
+  fill_cols[paste(sp, "F")] <- alpha(species_cols[sp], 0.5)
+}
+
+df_plot_plot <- df_plot %>%
+  mutate(
+    species_sex_plot = ifelse(grepl("gap_", species_sex), NA, species_sex)
+  )
+
+p_sex_species <- ggplot(df_plot_plot,
+                        aes(x = species_sex_plot,
+                            y = prevalence,
+                            fill = species_sex)) +
+  
+  geom_bar(stat = "identity",
+           color = "black",
+           na.rm = TRUE) +
+  
+  scale_fill_manual(values = fill_cols,
+                    na.translate = FALSE) +
+  
+  scale_x_discrete(drop = FALSE) +
+  
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.ticks.x = element_blank()
+  ) +
+  
+  labs(
+    x = "Species / Sex",
+    y = "Hemoplasma infection prevalence",
+    fill = "Species & Sex"
+  )
+
+p_sex_species
+
+pdf("Fig_1C_hemoplasma_sex_species.pdf", width = 12, height = 5)
+print(p_sex_species)
+dev.off()
+```
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 
 
 
