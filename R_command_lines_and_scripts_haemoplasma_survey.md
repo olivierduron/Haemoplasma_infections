@@ -3052,7 +3052,7 @@ ggsave(
 )
 ```
 
-### Exhaustive phylogenetic clade screening `hemoplasma` prevalence (complete data set, 44 `species')
+### Exhaustive phylogenetic clade screening `hemoplasma` prevalence (complete data set, 44 `species`)
 ```
 species_data <- data_hemoplasma_stat %>%
   mutate(
@@ -3262,7 +3262,7 @@ clade_results %>%
   ) %>%
   print(n = 20)
 ```
-### Exhaustive phylogenetic clade screening `hemoplasma` prevalence (conservative dataset, 16 `species')
+### Exhaustive phylogenetic clade screening `hemoplasma` prevalence (conservative dataset, 16 `species`)
 ```
 species_data <- data_hemoplasma_stat %>%
   mutate(
@@ -3754,7 +3754,7 @@ print(results_diet_n15)
 
 -> Interpretation: Interspecific variation in `hemoplasma` prevalence was not explained by the relative contribution of invertebrates, vertebrates, or plants in the host diet, with consistent results across both datasets.
 
-### Visualization of association between `hemoplasma` prevalence and dietary composition variables for complete (44 species)
+### Visualization of association between `hemoplasma` prevalence and dietary composition variables for the complete dataset (44 `species`)
 ```
 species_order <- data_hemoplasma_stat %>%
   select(species, order) %>%
