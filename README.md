@@ -18,8 +18,8 @@ We used data from three main sources:
 
 -> The veterinary evaluation R command lines and scripts are available [here](R_command_lines_and_scripts_haemoplasma_sloth.md).
 
-(3) Genetic survey of hemoplasma infections based on 16S rDNA sequences. The genetic survey was based on 16S rDNA sequences from hemoplasmas detected in the 22 infected mammalian species, together with additional reference sequences retrieved from GenBank.
+(3) Genetic survey of hemoplasma infections. The genetic survey was based on 16S rDNA sequences from hemoplasmas detected in the 22 infected mammalian species, together with additional reference sequences retrieved from GenBank.
 
--> The genetic dataset (ie, alignment of hemoplasma 16S rDNA sequences generated in this study and additional sequences retrieved from GenBank) is available [here](xxx).
+-> The genetic dataset (ie, fasta alignment of hemoplasma 16S rDNA sequences generated in this study and reference sequences) is available [here](xxx).
 
 -> The R command lines and scripts used for the genetic analyses are available [here](xxx).
