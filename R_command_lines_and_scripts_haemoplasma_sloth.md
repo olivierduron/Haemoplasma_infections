@@ -149,117 +149,119 @@ L0 <- mean(data_adult_Bt$total_length, na.rm = TRUE)
 data_adult_Bt$SMI <- data_adult_Bt$weight * (L0 / data_adult_Bt$total_length)^b
 ```
 
-### Fit a GLM to test whether SMI is influenced by interactions among `hemoplasma`, `pathogens`, `sex` and `season` in Bt
+### Fit a GLM to test whether SMI is influenced by `hemoplasma`, `pathogens`, `sex` and `season` in Bt
 ```
 model_SMIBt_full <- glm(
   SMI ~ hemoplasma * pathogens * season * sex,
   data = data_adult_Bt,
   family = gaussian(link = "identity")
 )
-
 summary(model_SMIBt_full)
-
 model_SMIBt_3way <- glm(
   SMI ~ (hemoplasma + pathogens + season + sex)^3,
   data = data_adult_Bt,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMIBt_3way, model_SMIBt_full, test = "Chisq")
-
-AIC(model_SMIBt_full, model_SMIBt_3way)
-
+summary(model_SMIBt_3way)
 model_SMIBt_2way <- glm(
   SMI ~ (hemoplasma + pathogens + season + sex)^2,
   data = data_adult_Bt,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMIBt_2way, model_SMIBt_3way, test = "Chisq")
-
-AIC(model_SMIBt_3way, model_SMIBt_2way)
-
+summary(model_SMIBt_2way)
 model_SMIBt_add <- glm(
   SMI ~ hemoplasma + pathogens + season + sex,
   data = data_adult_Bt,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMIBt_add, model_SMIBt_2way, test = "Chisq")
-
-AIC(model_SMIBt_2way, model_SMIBt_add)
-
+summary(model_SMIBt_add)
 model_SMIBt_null <- glm(
   SMI ~ 1,
   data = data_adult_Bt,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMIBt_null, model_SMIBt_add, test = "Chisq")
-
-AIC(model_SMIBt_null, model_SMIBt_add)
-
-AIC_models_SMIBt <- AIC(
-  model_SMIBt_full,
-  model_SMIBt_3way,
-  model_SMIBt_2way,
+summary(model_SMIBt_null)
+anova(
+  model_SMIBt_null,
   model_SMIBt_add,
-  model_SMIBt_null
+  test = "Chisq"
 )
-
-model_SMIBt_final <- glm(SMI ~ hemoplasma + pathogens + sex + season, data = data_adult_Bt, family = gaussian(link = "identity"))
-model_Bt_no_season <- update(model_SMIBt_final, . ~ . - season)
-model_Bt_no_pathogens <- update(model_SMIBt_final, . ~ . - pathogens)
-anova(model_Bt_no_season, model_SMIBt_final, test = "Chisq")
-anova(model_Bt_no_pathogens, model_SMIBt_final, test = "Chisq")
-AIC(model_SMIBt_final, model_Bt_no_season)
-AIC(model_SMIBt_final, model_Bt_no_pathogens)
-AIC_models_SMIBt$delta_AIC <- 
-  AIC_models_SMIBt$AIC - min(AIC_models_SMIBt$AIC)
-
-AIC_models_SMIBt
-AIC(model_Bt_no_season, model_SMIBt_final)
-AIC(model_Bt_no_pathogens, model_SMIBt_final)
-```
-
--> Results and interpretation : Several interaction terms were not estimable because some combinations of predictors were absent from the dataset. The model was therefore simplified hierarchically by removing higher-order interaction terms. Removing three-way interactions did not significantly reduce model fit (LRT: χ²₁ = 0.31, *p* = 0.305), and removing all two-way interactions likewise resulted in no significant loss of fit (LRT: χ²₄ = 1.12, *p* = 0.437). The additive model had the lowest AIC (141.18) and was strongly supported over the null model (LRT: χ²₄ = 7.80, *p* < 0.001; ΔAIC = 16.19). We therefore retained the additive model for further analyses.
-
-### Fit a GLM to test whether SMI is influenced by additive effets of `hemoplasma`, `pathogens`, `sex` and `season` in Bt
-```
-model_SMIBt_add <- glm(SMI ~ hemoplasma + pathogens + season + sex, data = data_adult_Bt, family = gaussian(link = "identity"))
-model_no_season <- update(model_SMIBt_add, . ~ . - season)
-anova(model_no_season, model_SMIBt_add, test = "Chisq")
-AIC(model_SMIBt_add, model_no_season)
-model_SMIBt_reduced1 <- glm(SMI ~ hemoplasma + pathogens + sex, data = data_adult_Bt, family = gaussian(link = "identity"))
-model_no_pathogens <- update(model_SMIBt_reduced1, . ~ . - pathogens)
-anova(model_no_pathogens, model_SMIBt_reduced1, test = "Chisq")
-AIC(model_SMIBt_reduced1, model_no_pathogens)
-model_SMIBt_reduced2 <- glm(SMI ~ hemoplasma + sex, data = data_adult_Bt, family = gaussian(link = "identity"))
-model_no_hemoplasma <- update(model_SMIBt_reduced2, . ~ . - hemoplasma)
-anova(model_no_hemoplasma, model_SMIBt_reduced2, test = "Chisq")
-AIC(model_SMIBt_reduced2, model_no_hemoplasma)
-model_no_sex <- update(model_SMIBt_reduced2, . ~ . - sex)
-anova(model_no_sex, model_SMIBt_reduced2, test = "Chisq")
-AIC(model_SMIBt_reduced2, model_no_sex)
-model_SMIBt_final <- model_SMIBt_reduced2
-summary(model_SMIBt_final)
-AIC(model_SMIBt_add, model_SMIBt_reduced1, model_SMIBt_reduced2, model_no_hemoplasma, model_no_sex)
-```
--> Results : `season` and other blood-borne `pathogens` were excluded from the final model because their removal did not affect model fit (LRT: χ²₁ = 0.02, *p* = 0.804 and χ²₁ = 0.60, *p* = 0.153, respectively). The final model retained `hemoplasma` and `sex` (AIC = 139.36). SMI was lower in `hemoplasma`-positive individuals (β = −0.92 ± 0.28 SE, *p* = 0.0014) and higher in males (β = 0.44 ± 0.12 SE, *p* < 0.001).
-
--> Interpretation : `hemoplasma` infection was negatively associated with body condition in adult *B. tridactylus*, independently of `sex`, whereas `season` and other blood-borne `pathogens` showed no detectable effect.
-
-### Model diagnostics (diagnostic plots, Shapiro–Wilk test, and Breusch–Pagan test)
-```
+anova(
+  model_SMIBt_add,
+  model_SMIBt_2way,
+  test = "Chisq"
+)
+anova(
+  model_SMIBt_2way,
+  model_SMIBt_3way,
+  test = "Chisq"
+)
+anova(
+  model_SMIBt_3way,
+  model_SMIBt_full,
+  test = "Chisq"
+)
+AIC_table <- AIC(
+  model_SMIBt_null,
+  model_SMIBt_add,
+  model_SMIBt_2way,
+  model_SMIBt_3way,
+  model_SMIBt_full
+)
+AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
+AIC_table
+drop1(
+  model_SMIBt_add,
+  test = "Chisq"
+)
+model_SMIBt_hemo <- glm(
+  SMI ~ hemoplasma,
+  data = data_adult_Bt,
+  family = gaussian(link = "identity")
+)
+model_SMIBt_sex <- glm(
+  SMI ~ sex,
+  data = data_adult_Bt,
+  family = gaussian(link = "identity")
+)
+model_SMIBt_season <- glm(
+  SMI ~ season,
+  data = data_adult_Bt,
+  family = gaussian(link = "identity")
+)
+model_SMIBt_pathogens <- glm(
+  SMI ~ pathogens,
+  data = data_adult_Bt,
+  family = gaussian(link = "identity")
+)
+AIC_models <- AIC(
+  model_SMIBt_null,
+  model_SMIBt_hemo,
+  model_SMIBt_sex,
+  model_SMIBt_season,
+  model_SMIBt_pathogens
+)
+AIC_models$delta_AIC <- AIC_models$AIC - AIC(model_SMIBt_null)
+AIC_models
 par(mfrow = c(2, 2))
-plot(model_SMIBt_final)
+plot(model_SMIBt_add)
 par(mfrow = c(1, 1))
-shapiro.test(residuals(model_SMIBt_final))
-library(lmtest)
-bptest(model_SMIBt_final)
+shapiro.test(residuals(model_SMIBt_add))
+plot(
+  fitted(model_SMIBt_add),
+  residuals(model_SMIBt_add),
+  xlab = "Fitted SMI",
+  ylab = "Residuals"
+)
+abline(h = 0, lty = 2)
+with(
+  data_adult_Bt,
+  table(hemoplasma, pathogens, season, sex)
+)
 ```
+-> Results : A Gaussian GLM showed that SMI was significantly associated with the additive effects of `hemoplasma` infection, other `pathogens` infection, `season` and `sex` (LRT: χ²₄ = 7.80, p < 0.001). The additive model was best supported (AIC = 141.18), with no improvement from adding two-way interactions (LRT: χ²₄ = 1.12, p = 0.437) or three-way interactions (LRT: χ²₁ = 0.31, p = 0.305). The four-way interaction model was not estimable beyond the three-way model because of data sparsity. In the final additive model, SMI was lower in `hemoplasma`-positive individuals (β = −0.96 ± 0.28 SE, LRT: χ²₁ = 11.39, p < 0.001) and higher in males (β = 0.46 ± 0.12 SE, LRT: χ²₁ = 14.24, p < 0.001), but was not associated with other `pathogens` (LRT: χ²₁ = 2.14, p = 0.144) or `season` (LRT: χ²₁ = 0.07, p = 0.798). Residuals were normally distributed (Shapiro–Wilk: W = 0.993, p = 0.952).
 
--> Results and interpretation :Residuals showed no evidence of departure from normality (Shapiro–Wilk: W = 0.988, p = 0.661) or heteroscedasticity (Breusch–Pagan: BP = 4.10, p = 0.129), supporting the use of the Gaussian model.
+-> Interpretation : SMI was negatively associated with `hemoplasma` infection and positively associated with male `sex`, with no evidence for effects of other `pathogens`, `season` or interactions.
 
 
 ### Calculation of mean and standard error of SMI by `hemoplasma` infection status and `sex` for Bt
@@ -299,7 +301,122 @@ Results :
 
 ### Generate SMI chart for Bt
 ```
+clean_data <- data_adult_Bt %>%
+  filter(
+    !is.na(weight), !is.na(total_length), !is.na(SMI),
+    is.finite(weight), is.finite(total_length), is.finite(SMI)
+  ) %>%
+  mutate(
+    sex_infect = case_when(
+      sex == "M" & hemoplasma == 0 ~ "Male, uninfected",
+      sex == "M" & hemoplasma == 1 ~ "Male, infected",
+      sex == "F" & hemoplasma == 0 ~ "Female, uninfected",
+      sex == "F" & hemoplasma == 1 ~ "Female, infected",
+      TRUE ~ NA_character_
+    )
+  )
 
+levels_order <- c(
+  "Male, uninfected",
+  "Male, infected",
+  "Female, uninfected",
+  "Female, infected"
+)
+
+clean_data <- clean_data %>%
+  mutate(
+    sex_infect = factor(sex_infect, levels = levels_order),
+    point_size = case_when(
+      sex_infect %in% c("Male, uninfected", "Male, infected") ~ 3.25,
+      TRUE ~ 4
+    )
+  )
+
+interp_data <- with(clean_data, akima::interp(
+  x = weight,
+  y = total_length,
+  z = SMI,
+  duplicate = "mean",
+  extrap = FALSE
+))
+
+interp_df <- expand.grid(
+  x = interp_data$x,
+  y = interp_data$y
+)
+
+interp_df$z <- as.vector(interp_data$z)
+
+legend_point_sizes <- c(3.25, 3.25, 4, 4) / 2
+
+p_SMI_Bt <- ggplot() +
+  geom_contour_filled(
+    data = interp_df,
+    aes(x = x, y = y, z = z)
+  ) +
+  geom_point(
+    data = clean_data,
+    aes(
+      x = weight,
+      y = total_length,
+      shape = sex_infect,
+      size = point_size
+    ),
+    color = "black",
+    stroke = 1
+  ) +
+  scale_fill_brewer(
+    palette = "YlOrBr",
+    name = "SMI level"
+  ) +
+  scale_shape_manual(
+    name = expression(paste("Hemoplasma", " infection status")),
+    values = c(
+      "Male, uninfected" = 0,
+      "Male, infected" = 12,
+      "Female, uninfected" = 1,
+      "Female, infected" = 10
+    )
+  ) +
+  scale_size_identity(guide = "none") +
+  guides(
+    shape = guide_legend(
+      override.aes = list(size = legend_point_sizes)
+    )
+  ) +
+  labs(
+    x = "Body mass (kg)",
+    y = "Total Length (cm)",
+    title = expression(
+      paste(
+        "Scale Mass Index (SMI) of ",
+        italic("Bradypus didactylus")
+      )
+    )
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "right",
+    panel.border = element_rect(
+      color = "black",
+      fill = NA,
+      linewidth = 1
+    ),
+    panel.background = element_blank(),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
+  )
+
+p_SMI_Bt
+
+ggsave(
+  filename = "SMI_Bradypus_didactylus.png",
+  plot = p_SMI_Bt,
+  width = 22.5,
+  height = 7,
+  units = "in",
+  dpi = 300
+)
 ```
 
 ## Step 6. Impact of `hemoplasma` infections on Scale Mass Index (SMI) in adult Cd
@@ -312,92 +429,120 @@ L0 <- mean(data_adult_Cd$total_length, na.rm = TRUE)
 data_adult_Cd$SMI <- data_adult_Cd$weight * (L0 / data_adult_Cd$total_length)^b
 ```
 
-### Fit a GLM to test whether SMI is influenced by interactions among `hemoplasma`, `pathogens`, `sex`, and `season` in Cd
+### Fit a GLM to test whether SMI is influenced by `hemoplasma`, `pathogens`, `sex`, and `season` in Cd
 ```
 model_SMICd_full <- glm(
   SMI ~ hemoplasma * pathogens * season * sex,
   data = data_adult_Cd,
   family = gaussian(link = "identity")
 )
-
 summary(model_SMICd_full)
-
 model_SMICd_3way <- glm(
   SMI ~ (hemoplasma + pathogens + season + sex)^3,
   data = data_adult_Cd,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMICd_3way, model_SMICd_full, test = "Chisq")
-
-AIC(model_SMICd_full, model_SMICd_3way)
-
+summary(model_SMICd_3way)
 model_SMICd_2way <- glm(
   SMI ~ (hemoplasma + pathogens + season + sex)^2,
   data = data_adult_Cd,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMICd_2way, model_SMICd_3way, test = "Chisq")
-
-AIC(model_SMICd_3way, model_SMICd_2way)
-
+summary(model_SMICd_2way)
 model_SMICd_add <- glm(
   SMI ~ hemoplasma + pathogens + season + sex,
   data = data_adult_Cd,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMICd_add, model_SMICd_2way, test = "Chisq")
-
-AIC(model_SMICd_2way, model_SMICd_add)
-
+summary(model_SMICd_add)
 model_SMICd_null <- glm(
   SMI ~ 1,
   data = data_adult_Cd,
   family = gaussian(link = "identity")
 )
-
-anova(model_SMICd_null, model_SMICd_add, test = "Chisq")
-
-AIC(model_SMICd_null, model_SMICd_add)
-
-AIC_models_SMICd <- AIC(
-  model_SMICd_full,
-  model_SMICd_3way,
-  model_SMICd_2way,
+summary(model_SMICd_null)
+anova(
+  model_SMICd_null,
   model_SMICd_add,
-  model_SMICd_null
+  test = "Chisq"
 )
-
-AIC_models_SMICd$delta_AIC <- 
-  AIC_models_SMICd$AIC - min(AIC_models_SMICd$AIC)
-
-AIC_models_SMICd
-model_SMICd_final <- glm(SMI ~ hemoplasma + pathogens + season + sex, data = data_adult_Cd, family = gaussian(link = "identity"))
-model_Cd_no_hemoplasma <- update(model_SMICd_final, . ~ . - hemoplasma)
-model_Cd_no_sex <- update(model_SMICd_final, . ~ . - sex)
-model_Cd_no_season <- update(model_SMICd_final, . ~ . - season)
-model_Cd_no_pathogens <- update(model_SMICd_final, . ~ . - pathogens)
-anova(model_Cd_no_hemoplasma, model_SMICd_final, test = "Chisq")
-anova(model_Cd_no_sex, model_SMICd_final, test = "Chisq")
-anova(model_Cd_no_season, model_SMICd_final, test = "Chisq")
-anova(model_Cd_no_pathogens, model_SMICd_final, test = "Chisq")
-AIC(model_SMICd_final, model_Cd_no_hemoplasma)
-AIC(model_SMICd_final, model_Cd_no_sex)
-AIC(model_SMICd_final, model_Cd_no_season)
-AIC(model_SMICd_final, model_Cd_no_pathogens)
+anova(
+  model_SMICd_add,
+  model_SMICd_2way,
+  test = "Chisq"
+)
+anova(
+  model_SMICd_2way,
+  model_SMICd_3way,
+  test = "Chisq"
+)
+anova(
+  model_SMICd_3way,
+  model_SMICd_full,
+  test = "Chisq"
+)
+AIC_table <- AIC(
+  model_SMICd_null,
+  model_SMICd_add,
+  model_SMICd_2way,
+  model_SMICd_3way,
+  model_SMICd_full
+)
+AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
+AIC_table
+drop1(
+  model_SMICd_add,
+  test = "Chisq"
+)
+model_SMICd_hemo <- glm(
+  SMI ~ hemoplasma,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
+model_SMICd_sex <- glm(
+  SMI ~ sex,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
+model_SMICd_season <- glm(
+  SMI ~ season,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
+model_SMICd_pathogens <- glm(
+  SMI ~ pathogens,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
+AIC_models <- AIC(
+  model_SMICd_null,
+  model_SMICd_hemo,
+  model_SMICd_sex,
+  model_SMICd_season,
+  model_SMICd_pathogens
+)
+AIC_models$delta_AIC <- AIC_models$AIC - AIC(model_SMICd_null)
+AIC_models
+par(mfrow = c(2, 2))
+plot(model_SMICd_add)
+par(mfrow = c(1, 1))
+shapiro.test(residuals(model_SMICd_add))
+plot(
+  fitted(model_SMICd_add),
+  residuals(model_SMICd_add),
+  xlab = "Fitted SMI",
+  ylab = "Residuals"
+)
+abline(h = 0, lty = 2)
+with(
+  data_adult_Cd,
+  table(hemoplasma, pathogens, season, sex)
+)
 ```
 
--> Results: For adult *Choloepus didactylus*, neither the interaction models nor the additive model improved model fit. Higher-order interactions were not supported (LRT: χ²₂ = 2.81, *p* = 0.087), and removing all two-way interactions did not reduce model fit (LRT: χ²₆ = 1.37, *p* = 0.896). The additive model also did not improve on the null model (LRT: χ²₄ = 1.02, *p* = 0.774) and had a higher AIC (136.32 vs. 130.25). The null model was therefore retained.
+-> Results : No evidence of an association between SMI and `hemoplasma` infection was detected in adult *C. didactylus*. The null model was best supported (AIC = 130.25), with no improvement in model fit when `hemoplasma` infection, other blood-borne `pathogens`, `season`, and `sex` were included as additive predictors (LRT: χ²₄ = 1.02, p = 0.774; ΔAIC = +6.07). None of the individual predictors significantly improved the additive model (hemoplasma: χ²₁ = 0.005, p = 0.944; other pathogens: χ²₁ = 1.61, p = 0.204; season: χ²₁ = 0.61, p = 0.434; sex: χ²₁ = 0.11, p = 0.745). Residuals of the additive model were normally distributed (Shapiro–Wilk: W = 0.980, p = 0.484).
 
--> Interpretation : SMI in adult *C. didactylus* showed no detectable association with `hemoplasma` infection, `sex`, `season`, or other blood-borne `pathogens`.
-
-### Model diagnostics (Shapiro–Wilk test)
-```
-shapiro.test(residuals(model_SMICd_null))
-```
--> Results and interpretation : Residuals of the null model showed no evidence of departure from normality (Shapiro–Wilk: W = 0.979, p = 0.428).
+-> Interpretation : In adult *C. didactylus*, body condition was not detectably associated with `hemoplasma` infection, co-infection with other blood-borne `pathogens`, `season`, or `sex`. The higher AIC of the additive model relative to the null model indicates that adding these predictors did not improve the explanation of variation in SMI. Overall, the data provide no evidence that `hemoplasma` infection is associated with reduced body condition in this `species`.
 
 ### Generate SMI chart for Cd
 ```
@@ -553,43 +698,77 @@ model_5_null <- glm(
   family = gaussian(link = "identity")
 )
 
-anova(model_5_3way, model_5, test = "Chisq")
-anova(model_5_2way, model_5_3way, test = "Chisq")
-anova(model_5_add, model_5_2way, test = "Chisq")
 anova(model_5_null, model_5_add, test = "Chisq")
+anova(model_5_add, model_5_2way, test = "Chisq")
+anova(model_5_2way, model_5_3way, test = "Chisq")
+anova(model_5_3way, model_5, test = "Chisq")
 
-AIC(model_5, model_5_3way, model_5_2way, model_5_add, model_5_null)
-model_5_add <- glm(
-  log(neck_size) ~ hemoplasma + pathogens + season + sex,
+AIC_table <- AIC(
+  model_5_null,
+  model_5_add,
+  model_5_2way,
+  model_5_3way,
+  model_5
+)
+AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
+AIC_table
+
+drop1(
+  model_5_add,
+  test = "Chisq"
+)
+
+model_5_hemo <- glm(
+  log(neck_size) ~ hemoplasma,
   data = data_adult_Bt,
   family = gaussian(link = "identity")
 )
 
-model_5_no_hemoplasma <- update(model_5_add, . ~ . - hemoplasma)
-model_5_no_pathogens <- update(model_5_add, . ~ . - pathogens)
-model_5_no_season <- update(model_5_add, . ~ . - season)
-model_5_no_sex <- update(model_5_add, . ~ . - sex)
+model_5_pathogens <- glm(
+  log(neck_size) ~ pathogens,
+  data = data_adult_Bt,
+  family = gaussian(link = "identity")
+)
 
-anova(model_5_no_hemoplasma, model_5_add, test = "Chisq")
-anova(model_5_no_pathogens, model_5_add, test = "Chisq")
-anova(model_5_no_season, model_5_add, test = "Chisq")
-anova(model_5_no_sex, model_5_add, test = "Chisq")
+model_5_season <- glm(
+  log(neck_size) ~ season,
+  data = data_adult_Bt,
+  family = gaussian(link = "identity")
+)
 
-AIC(model_5_add, model_5_no_hemoplasma)
-AIC(model_5_add, model_5_no_pathogens)
-AIC(model_5_add, model_5_no_season)
-AIC(model_5_add, model_5_no_sex)
-```
+model_5_sex <- glm(
+  log(neck_size) ~ sex,
+  data = data_adult_Bt,
+  family = gaussian(link = "identity")
+)
 
--> Results: For adult *Bradypus tridactylus*, none of the interaction models improved model fit (three-way vs. two-way interactions: LRT, χ²₁ = 0.003, *p* = 0.554; two-way vs. additive model: χ²₃ = 0.010, *p* = 0.765). The additive model also did not improve on the null model (χ²₄ = 0.042, *p* = 0.298), and the null model had the lowest AIC (−112.64 vs. −109.75 for the additive model). The null model was therefore retained.
+AIC_models <- AIC(
+  model_5_null,
+  model_5_hemo,
+  model_5_pathogens,
+  model_5_season,
+  model_5_sex
+)
+AIC_models$delta_AIC <- AIC_models$AIC - AIC(model_5_null)
+AIC_models
 
--> Interpretation : Neck size showed no detectable association with `hemoplasma` infection, other blood-borne `pathogens`, `season`, or `sex` in adult *Bradypus tridactylus*.
+par(mfrow = c(2, 2))
+plot(model_5_add)
+par(mfrow = c(1, 1))
 
-### Model diagnostics (Shapiro–Wilk test)
-```
 shapiro.test(residuals(model_5_null))
+
+plot(
+  fitted(model_5_null),
+  residuals(model_5_null),
+  xlab = "Fitted log(neck circumference)",
+  ylab = "Residuals"
+)
+abline(h = 0, lty = 2)
 ```
--> Results and interpretation : Residuals showed no significant departure from normality (Shapiro–Wilk: W = 0.967, p = 0.093); this supports the Gaussian assumption.
+-> Results : In adult *Bradypus tridactylus*, none of the interaction models improved model fit relative to simpler models (additive vs. two-way interactions: LRT, χ²₃ = 0.01, *p* = 0.765; two-way vs. three-way interactions: χ²₁ = 0.003, *p* = 0.554), and the three-way model was equivalent to the full model because no additional parameters were estimable. The additive model did not improve on the null model (χ²₄ = 0.04, *p* = 0.298), and the null model had the lowest AIC (−112.64; ΔAIC = 0.00), compared with the additive model (−109.75; ΔAIC = 2.88). In the additive model, none of the predictors was significantly associated with log-transformed neck circumference (`hemoplasma`: χ²₁ = 0.72, *p* = 0.398; other `pathogens`: χ²₁ = 0.48, *p* = 0.487; `season`: χ²₁ = 0.22, *p* = 0.638; `sex`: χ²₁ = 2.43, *p* = 0.119). Single-predictor models provided little additional support for any predictor, although the `sex`-only model had a slightly lower AIC than the null model (ΔAIC = −1.42). Residuals of the null model showed no significant departure from normality (Shapiro–Wilk: W = 0.967, *p* = 0.093).
+
+-> Interpretation : Neck circumference was not significantly associated with `hemoplasma` infection, other blood-borne `pathogens`, or `season` in adult *B. tridactylus*. 
 
 ### Fit a GLM to test whether neck circumference is influenced by interactions among `hemoplasma`, `pathogens`, `sex`, and `season` in Cd
 ```
@@ -623,46 +802,81 @@ model_6_null <- glm(
   family = gaussian(link = "identity")
 )
 
-anova(model_6_3way, model_6, test = "Chisq")
-anova(model_6_2way, model_6_3way, test = "Chisq")
-anova(model_6_add, model_6_2way, test = "Chisq")
 anova(model_6_null, model_6_add, test = "Chisq")
+anova(model_6_add, model_6_2way, test = "Chisq")
+anova(model_6_2way, model_6_3way, test = "Chisq")
+anova(model_6_3way, model_6, test = "Chisq")
 
-AIC(
-  model_6,
-  model_6_3way,
-  model_6_2way,
+AIC_table <- AIC(
+  model_6_null,
   model_6_add,
-  model_6_null
+  model_6_2way,
+  model_6_3way,
+  model_6
 )
-model_6_no_hemoplasma <- update(model_6_add, . ~ . - hemoplasma)
-model_6_no_pathogens <- update(model_6_add, . ~ . - pathogens)
-model_6_no_season <- update(model_6_add, . ~ . - season)
-model_6_no_sex <- update(model_6_add, . ~ . - sex)
+AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
+AIC_table
 
-anova(model_6_no_hemoplasma, model_6_add, test = "Chisq")
-anova(model_6_no_pathogens, model_6_add, test = "Chisq")
-anova(model_6_no_season, model_6_add, test = "Chisq")
-anova(model_6_no_sex, model_6_add, test = "Chisq")
+drop1(
+  model_6_add,
+  test = "Chisq"
+)
 
-AIC(model_6_add, model_6_no_hemoplasma)
-AIC(model_6_add, model_6_no_pathogens)
-AIC(model_6_add, model_6_no_season)
-AIC(model_6_add, model_6_no_sex)
-```
+model_6_hemo <- glm(
+  log(neck_size) ~ hemoplasma,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
 
--> Results : For adult *Choloepus didactylus*, the four-way interaction model and the three-way interaction model were identical in fit (Δdeviance = 0, df = 0). Adding three-way interactions to the two-way model resulted in a small improvement in fit (LRT: χ²₂ = 0.093, *p* = 0.026), whereas adding two-way interactions to the additive model did not improve fit (χ²₆ = 0.012, *p* = 0.992). The additive model also did not improve on the null model (χ²₄ = 0.055, *p* = 0.370), and the null model had the lowest AIC (−69.52 vs. −66.07 for the additive model). The null model was therefore retained.
+model_6_pathogens <- glm(
+  log(neck_size) ~ pathogens,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
 
--> Interpretation : Neck size showed no overall detectable association with `hemoplasma` infection, other blood-borne `pathogens`, `season`, or `sex` in adult *Choloepus didactylus*, despite a nominal improvement in fit associated with three-way interactions.
+model_6_season <- glm(
+  log(neck_size) ~ season,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
 
-### Model diagnostics (Shapiro–Wilk test)
-```
+model_6_sex <- glm(
+  log(neck_size) ~ sex,
+  data = data_adult_Cd,
+  family = gaussian(link = "identity")
+)
+
+AIC_models <- AIC(
+  model_6_null,
+  model_6_hemo,
+  model_6_pathogens,
+  model_6_season,
+  model_6_sex
+)
+AIC_models$delta_AIC <- AIC_models$AIC - AIC(model_6_null)
+AIC_models
+
+par(mfrow = c(2, 2))
+plot(model_6_add)
+par(mfrow = c(1, 1))
+
 shapiro.test(residuals(model_6_null))
-```
--> Results and interpretation : Residuals of the null model did not significantly deviate from normality (Shapiro–Wilk test, W = 0.972, p = 0.314), supporting the use of a Gaussian error distribution.
 
-## Step 8. Impact of `hemoplasma` infections on hematocrit levels
-### Fit a GLM to test whether `hematocrit` is influenced by interactions among `hemoplasma`, `pathogens`, `sex`, and `season` in Bt
+plot(
+  fitted(model_6_null),
+  residuals(model_6_null),
+  xlab = "Fitted log(neck circumference)",
+  ylab = "Residuals"
+)
+abline(h = 0, lty = 2)
+```
+
+-> Results : In adult *Choloepus didactylus*, adding the four predictors as additive effects did not improve model fit relative to the null model (LRT: χ²₄ = 0.05, *p* = 0.370; ΔAIC = +3.45). Adding two-way interactions provided no further improvement (χ²₆ = 0.01, *p* = 0.992), whereas the addition of three-way interactions significantly reduced residual deviance (χ²₂ = 0.09, *p* = 0.026). However, the three-way model had a substantially higher AIC than the null model (ΔAIC = +9.29), and was therefore not supported overall. In the additive model, none of the predictors was significantly associated with log-transformed neck circumference (`hemoplasma`: χ²₁ = 0.001, *p* = 0.981; other `pathogens`: χ²₁ = 0.74, *p* = 0.391; `season`: χ²₁ = 1.40, *p* = 0.237; `sex`: χ²₁ = 1.40, *p* = 0.238). Single-predictor models provided no meaningful support for any predictor, with AIC values very similar to that of the null model (ΔAIC ranging from −0.21 for `season` to +1.81 for `hemoplasma`). Residuals of the null model showed no significant departure from normality (Shapiro–Wilk: W = 0.972, *p* = 0.314).
+
+-> Interpretation : Neck circumference was not associated with `hemoplasma` infection, other blood-borne `pathogens`, `season`, or `sex` in adult *C. didactylus*. 
+
+## Step 8. Impact of `hemoplasma` infections on `hematocrit` levels
+### Fit a GLM to test whether `hematocrit` is influenced by `hemoplasma`, `pathogens`, `sex`, and `season` in Bt
 ```
 model_7 <- glm(
   hematocrit ~ hemoplasma * pathogens * season * sex,
@@ -693,30 +907,76 @@ model_7_null <- glm(
   data = data_adult_Bt,
   family = Gamma(link = "log")
 )
-anova(model_7_3way, model_7, test = "Chisq")
-anova(model_7_2way, model_7_3way, test = "Chisq")
-anova(model_7_add, model_7_2way, test = "Chisq")
+
 anova(model_7_null, model_7_add, test = "Chisq")
-AIC(model_7, model_7_3way, model_7_2way, model_7_add, model_7_null)
+anova(model_7_add, model_7_2way, test = "Chisq")
+anova(model_7_2way, model_7_3way, test = "Chisq")
+anova(model_7_3way, model_7, test = "Chisq")
 
-model_7_no_hemoplasma <- update(model_7_add, . ~ . - hemoplasma)
-model_7_no_pathogens <- update(model_7_add, . ~ . - pathogens)
-model_7_no_season <- update(model_7_add, . ~ . - season)
-model_7_no_sex <- update(model_7_add, . ~ . - sex)
+AIC_table <- AIC(
+  model_7_null,
+  model_7_add,
+  model_7_2way,
+  model_7_3way,
+  model_7
+)
+AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
+AIC_table
 
-anova(model_7_no_hemoplasma, model_7_add, test = "Chisq")
-anova(model_7_no_pathogens, model_7_add, test = "Chisq")
-anova(model_7_no_season, model_7_add, test = "Chisq")
-anova(model_7_no_sex, model_7_add, test = "Chisq")
+drop1(
+  model_7_add,
+  test = "Chisq"
+)
 
-AIC(model_7_add, model_7_no_hemoplasma)
-AIC(model_7_add, model_7_no_pathogens)
-AIC(model_7_add, model_7_no_season)
-AIC(model_7_add, model_7_no_sex)
+model_7_hemo <- glm(
+  hematocrit ~ hemoplasma,
+  data = data_adult_Bt,
+  family = Gamma(link = "log")
+)
+
+model_7_pathogens <- glm(
+  hematocrit ~ pathogens,
+  data = data_adult_Bt,
+  family = Gamma(link = "log")
+)
+
+model_7_season <- glm(
+  hematocrit ~ season,
+  data = data_adult_Bt,
+  family = Gamma(link = "log")
+)
+
+model_7_sex <- glm(
+  hematocrit ~ sex,
+  data = data_adult_Bt,
+  family = Gamma(link = "log")
+)
+
+AIC_models <- AIC(
+  model_7_null,
+  model_7_hemo,
+  model_7_pathogens,
+  model_7_season,
+  model_7_sex
+)
+AIC_models$delta_AIC <- AIC_models$AIC - AIC(model_7_null)
+AIC_models
+
+par(mfrow = c(2, 2))
+plot(model_7_add)
+par(mfrow = c(1, 1))
+
+plot(
+  fitted(model_7_add),
+  residuals(model_7_add, type = "deviance"),
+  xlab = "Fitted hematocrit",
+  ylab = "Deviance residuals"
+)
+abline(h = 0, lty = 2)
 ```
--> Results : For adult *Bradypus tridactylus*, adding three-way interactions did not improve model fit over the two-way interaction model (LRT: χ²₁ = 0.0001, *p* = 0.928), and the two-way interaction model did not improve fit over the additive model (χ²₄ = 0.099, *p* = 0.193). The additive model also did not improve on the null model (χ²₄ = 0.079, *p* = 0.321), and the null model had the lowest AIC (513.01 vs. 516.14 for the additive model). The null model was therefore retained.
+-> -> Results : In adult *Bradypus tridactylus*, the additive model did not improve on the null model (LRT: χ²₄ = 0.08, *p* = 0.321; ΔAIC = +3.13). Neither two-way nor three-way interactions improved fit (χ²₄ = 0.10, *p* = 0.193; χ²₁ = 0.0001, *p* = 0.928). None of the predictors was significant in the additive model (`hemoplasma`: χ²₁ = 0.46, *p* = 0.497; `pathogens`: χ²₁ = 0.18, *p* = 0.669; `season`: χ²₁ = 0.40, *p* = 0.527; `sex`: χ²₁ = 3.36, *p* = 0.067). The null model had the lowest AIC (513.01). The `sex`-only model had a slightly lower AIC (ΔAIC = −1.63), but this provided weak support.
 
--> Interpretation : `hematocrit` showed no detectable association with `hemoplasma` infection, other blood-borne `pathogens`, `season`, or `sex` in adult *Bradypus tridactylus*.
+-> Interpretation : `hematocrit` showed no significant association with `hemoplasma` infection, other blood-borne `pathogens`, `season`, or `sex` in adult *Bradypus tridactylus*.
 
 ### Calculation of mean and standard error of `hematocrit` by `hemoplasma` for Bt
 ```
@@ -735,7 +995,7 @@ Results :
 | Positive             | 40.8                | 3.04 |
 
 
-### Fit a GLM to test whether `hematocrit` is influenced by interactions among `hemoplasma`, `pathogens`, `sex`, and `season` in Cd
+### Fit a GLM to test whether `hematocrit` is influenced by `hemoplasma`, `pathogens`, `sex`, and `season` in Cd
 ```
 model_8 <- glm(
   hematocrit ~ hemoplasma * pathogens * season * sex,
@@ -766,39 +1026,76 @@ model_8_null <- glm(
   data = data_adult_Cd,
   family = Gamma(link = "log")
 )
-anova(model_8_3way, model_8, test = "Chisq")
-anova(model_8_2way, model_8_3way, test = "Chisq")
-anova(model_8_add, model_8_2way, test = "Chisq")
+
 anova(model_8_null, model_8_add, test = "Chisq")
-AIC(model_8, model_8_3way, model_8_2way, model_8_add, model_8_null)
+anova(model_8_add, model_8_2way, test = "Chisq")
+anova(model_8_2way, model_8_3way, test = "Chisq")
+anova(model_8_3way, model_8, test = "Chisq")
+
+AIC_table <- AIC(
+  model_8_null,
+  model_8_add,
+  model_8_2way,
+  model_8_3way,
+  model_8
+)
+AIC_table$delta_AIC <- AIC_table$AIC - min(AIC_table$AIC)
+AIC_table
+
+drop1(
+  model_8_add,
+  test = "Chisq"
+)
+
+model_8_hemo <- glm(
+  hematocrit ~ hemoplasma,
+  data = data_adult_Cd,
+  family = Gamma(link = "log")
+)
+
+model_8_pathogens <- glm(
+  hematocrit ~ pathogens,
+  data = data_adult_Cd,
+  family = Gamma(link = "log")
+)
+
+model_8_season <- glm(
+  hematocrit ~ season,
+  data = data_adult_Cd,
+  family = Gamma(link = "log")
+)
+
+model_8_sex <- glm(
+  hematocrit ~ sex,
+  data = data_adult_Cd,
+  family = Gamma(link = "log")
+)
+
+AIC_models <- AIC(
+  model_8_null,
+  model_8_hemo,
+  model_8_pathogens,
+  model_8_season,
+  model_8_sex
+)
+AIC_models$delta_AIC <- AIC_models$AIC - AIC(model_8_null)
+AIC_models
+
+par(mfrow = c(2, 2))
+plot(model_8_add)
+par(mfrow = c(1, 1))
+
+plot(
+  fitted(model_8_add),
+  residuals(model_8_add, type = "deviance"),
+  xlab = "Fitted hematocrit",
+  ylab = "Deviance residuals"
+)
+abline(h = 0, lty = 2)
 ```
+-> Results : In adult *Choloepus didactylus*, the additive model improved fit relative to the null model (LRT: χ²₄ = 0.21, *p* = 0.028; ΔAIC = −1.82) and was retained. Adding two-way or three-way interactions did not improve fit (χ²₆ = 0.08, *p* = 0.692; χ²₁ = 0.003, *p* = 0.703). In the additive model, `hematocrit` was significantly associated with `season` (χ²₁ = 8.17, *p* = 0.004), but not with `hemoplasma`, other `pathogens`, or `sex` (*p* > 0.10). The `season`-only model also had the lowest AIC among single-predictor models (ΔAIC = −2.47 relative to the null).
 
--> Results : For adult *Choloepus didactylus*, adding three-way interactions did not improve model fit over the two-way interaction model (LRT: χ²₁ = 0.003, *p* = 0.703), and the two-way interaction model did not improve fit over the additive model (χ²₆ = 0.079, *p* = 0.692). In contrast, the additive model significantly improved fit relative to the null model (χ²₄ = 0.209, *p* = 0.028) and had a lower AIC (383.99 vs. 385.81). The additive model was therefore retained.
-
-
-### Fit a GLM to test whether `hematocrit` is influenced by `hemoplasma`, `pathogens`, `sex`, and `season` in Cd
-```
-model_8_final <- model_8_add
-summary(model_8_final)
-AIC(model_8_final)
-model_8_no_hemoplasma <- update(model_8_add, . ~ . - hemoplasma)
-model_8_no_pathogens <- update(model_8_add, . ~ . - pathogens)
-model_8_no_season <- update(model_8_add, . ~ . - season)
-model_8_no_sex <- update(model_8_add, . ~ . - sex)
-
-anova(model_8_no_hemoplasma, model_8_add, test = "Chisq")
-anova(model_8_no_pathogens, model_8_add, test = "Chisq")
-anova(model_8_no_season, model_8_add, test = "Chisq")
-anova(model_8_no_sex, model_8_add, test = "Chisq")
-
-AIC(model_8_add, model_8_no_hemoplasma)
-AIC(model_8_add, model_8_no_pathogens)
-AIC(model_8_add, model_8_no_season)
-AIC(model_8_add, model_8_no_sex)
-```
--> Results : For adult *Choloepus didactylus*, the additive model was retained (AIC = 383.99; ΔAIC = 1.82 relative to the null model). `hematocrit` was higher during the wet `season` (β = 0.116 ± 0.041 SE, *p* = 0.006), but was not significantly associated with `hemoplasma` infection, other blood-borne `pathogens`, or `sex` (*p* > 0.11).
-
--> Interpretation : `hematocrit` showed a seasonal pattern in adult *Choloepus didactylus*, with higher values during the wet `season`, but no detectable association with `hemoplasma` infection.
+-> Interpretation : `hematocrit` showed a seasonal pattern in adult *C. didactylus*, but was not detectably associated with `hemoplasma` infection, other `pathogens`, or `sex`.
 
 ### Calculation of mean and standard error of `hematocrit` by `hemoplasma` for Cd
 ```
@@ -835,9 +1132,6 @@ Results :
 
 Create violin plots for `hematocrit`
 ```
-library(ggplot2)
-library(patchwork)
-
 label_style <- element_text(size = 28, face = "bold")
 
 panel_theme <- theme_minimal() +
@@ -851,7 +1145,7 @@ panel_theme <- theme_minimal() +
     plot.margin = margin(10, 10, 10, 10)
   )
 
-pA <- ggplot(data_adult_Bt, aes(
+pC <- ggplot(data_adult_Bt, aes(
   x = factor(hemoplasma, levels = c(0, 1),
              labels = c("Uninfected", "Infected")),
   y = hematocrit
@@ -859,35 +1153,12 @@ pA <- ggplot(data_adult_Bt, aes(
   geom_violin(fill = "darkorange2", color = "black", alpha = 0.7, trim = FALSE) +
   geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
   geom_jitter(width = 0.15, size = 2, shape = 21, fill = NA, color = "black", stroke = 0.7) +
-  labs(x = NULL, y = "Hematocrit (%)", title = "A") +
+  labs(
+    x = "Hemoplasma infection status",
+    y = "Hematocrit (%)",
+    title = "C"
+  ) +
   scale_y_continuous(limits = c(20, 60)) +
-  scale_x_discrete(labels = NULL) +
-  panel_theme
-
-pB <- ggplot(data_adult_Bt, aes(
-  x = factor(season, levels = c("D", "W"),
-             labels = c("Dry", "Wet")),
-  y = hematocrit
-)) +
-  geom_violin(fill = "darkorange2", color = "black", alpha = 0.7, trim = FALSE) +
-  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
-  geom_jitter(width = 0.15, size = 2, shape = 21, fill = NA, color = "black", stroke = 0.7) +
-  labs(x = NULL, y = NULL, title = "B") +
-  scale_y_continuous(limits = c(20, 60)) +
-  scale_x_discrete(labels = NULL) +
-  panel_theme
-
-pC <- ggplot(data_adult_Bt, aes(
-  x = factor(sex, levels = c("M", "F"),
-             labels = c("Male", "Female")),
-  y = hematocrit
-)) +
-  geom_violin(fill = "darkorange2", color = "black", alpha = 0.7, trim = FALSE) +
-  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
-  geom_jitter(width = 0.15, size = 2, shape = 21, fill = NA, color = "black", stroke = 0.7) +
-  labs(x = NULL, y = NULL, title = "C") +
-  scale_y_continuous(limits = c(20, 60)) +
-  scale_x_discrete(labels = NULL) +
   panel_theme
 
 pD <- ggplot(data_adult_Cd, aes(
@@ -898,78 +1169,23 @@ pD <- ggplot(data_adult_Cd, aes(
   geom_violin(fill = "darkorange2", color = "black", alpha = 0.7, trim = FALSE) +
   geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
   geom_jitter(width = 0.15, size = 2, shape = 21, fill = NA, color = "black", stroke = 0.7) +
-  labs(x = "Hemoplasma infection status",
-       y = "Hematocrit (%)",
-       title = "D") +
-  scale_y_continuous(limits = c(10, 60)) +
-  panel_theme
-
-pE <- ggplot(data_adult_Cd, aes(
-  x = factor(season, levels = c("D", "W"),
-             labels = c("Dry", "Wet")),
-  y = hematocrit
-)) +
-  geom_violin(fill = "darkorange2", color = "black", alpha = 0.7, trim = FALSE) +
-  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
-  geom_jitter(width = 0.15, size = 2, shape = 21, fill = NA, color = "black", stroke = 0.7) +
-  labs(x = "Season", y = NULL, title = "E") +
-  scale_y_continuous(limits = c(10, 60)) +
-  panel_theme
-
-pF <- ggplot(data_adult_Cd, aes(
-  x = factor(sex, levels = c("M", "F"),
-             labels = c("Male", "Female")),
-  y = hematocrit
-)) +
-  geom_violin(fill = "darkorange2", color = "black", alpha = 0.7, trim = FALSE) +
-  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA, color = "black") +
-  geom_jitter(width = 0.15, size = 2, shape = 21, fill = NA, color = "black", stroke = 0.7) +
-  labs(x = "Sex", y = NULL, title = "F") +
-  scale_y_continuous(limits = c(10, 60)) +
-  panel_theme
-
-species_Bt <- ggplot() +
-  annotate(
-    "text",
-    x = 0.5, y = 0.5,
-    label = "Bradypus tridactylus",
-    fontface = "italic",
-    angle = 90,
-    size = 7
+  labs(
+    x = "Hemoplasma infection status",
+    y = "Hematocrit (%)",
+    title = "D"
   ) +
-  theme_void() +
-  theme(
-    plot.margin = margin(10, 0, 10, 0)
-  )
+  scale_y_continuous(limits = c(10, 60)) +
+  panel_theme
 
-species_Cd <- ggplot() +
-  annotate(
-    "text",
-    x = 0.5, y = 0.5,
-    label = "Choloepus didactylus",
-    fontface = "italic",
-    angle = 90,
-    size = 7
-  ) +
-  theme_void() +
-  theme(
-    plot.margin = margin(10, 0, 10, 0)
-  )
-
-final_plot <- (
-  species_Bt | pA | pB | pC
-) / (
-  species_Cd | pD | pE | pF
-) +
-  plot_layout(widths = c(0.4, 1, 1, 1))
+final_plot <- pC | pD
 
 print(final_plot)
 
 ggsave(
-  "hematocrit_by_species_and_predictors.png",
+  "hematocrit_hemoplasma_by_species.png",
   plot = final_plot,
-  width = 16,
-  height = 12,
+  width = 10,
+  height = 6,
   units = "in",
   dpi = 300
 )
@@ -996,7 +1212,7 @@ table(data_adult_Bt$censored, useNA = "ifany")
 table(data_adult_Cd$censored, useNA = "ifany")
 ```
 
-### Fit Gaussian survival regression models to test the interaction effects among `hemoplasma`, `pathogens`, `season`, `sex` on `temperature` in Bt
+### Fit Gaussian survival regression models to test the effects of `hemoplasma`, `pathogens`, `season`, `sex` on `temperature` in Bt
 ```
 model_10 <- survreg(
   temp_surv ~ hemoplasma * pathogens * season * sex,
@@ -1028,19 +1244,85 @@ model_10_null <- survreg(
   dist = "gaussian"
 )
 
-anova(model_10_3way, model_10)
-anova(model_10_2way, model_10_3way)
-anova(model_10_add, model_10_2way)
 anova(model_10_null, model_10_add)
+anova(model_10_add, model_10_2way)
+anova(model_10_2way, model_10_3way)
+anova(model_10_3way, model_10)
 
-AIC(
-  model_10,
-  model_10_3way,
-  model_10_2way,
+AIC_table_10 <- AIC(
+  model_10_null,
   model_10_add,
-  model_10_null
+  model_10_2way,
+  model_10_3way,
+  model_10
 )
 
+AIC_table_10$delta_AIC <- AIC_table_10$AIC - min(AIC_table_10$AIC)
+
+AIC_table_10
+
+drop1(model_10_add, test="Chisq")
+
+model_10_hemo <- survreg(
+  temp_surv ~ hemoplasma,
+  data=data_adult_Bt,
+  dist="gaussian"
+)
+
+model_10_pathogens <- survreg(
+  temp_surv ~ pathogens,
+  data=data_adult_Bt,
+  dist="gaussian"
+)
+
+model_10_season <- survreg(
+  temp_surv ~ season,
+  data=data_adult_Bt,
+  dist="gaussian"
+)
+
+model_10_sex <- survreg(
+  temp_surv ~ sex,
+  data=data_adult_Bt,
+  dist="gaussian"
+)
+
+AIC_models_10 <- AIC(
+  model_10_null,
+  model_10_hemo,
+  model_10_pathogens,
+  model_10_season,
+  model_10_sex
+)
+
+AIC_models_10$delta_AIC <- AIC_models_10$AIC - AIC(model_10_null)
+
+AIC_models_10
+
+model_10_final <- model_10_add
+
+summary(model_10_final)
+
+par(mfrow=c(2,2))
+plot(model_10_final)
+par(mfrow=c(1,1))
+
+plot(
+  fitted(model_10_final),
+  residuals(model_10_final),
+  xlab="Fitted body temperature",
+  ylab="Residuals"
+)
+abline(h=0,lty=2)
+
+shapiro.test(residuals(model_10_final))
+```
+-> Results : In adult *Bradypus tridactylus*, adding the four predictors as additive effects did not significantly improve model fit relative to the null model (LRT: χ²₄ = 5.91, *p* = 0.206; ΔAIC = +2.09), and the null model had the lowest AIC (89.36). Adding two-way or three-way interactions did not improve fit (χ²₆ = 1.66, *p* = 0.948; χ²₄ = 0.13, *p* = 0.998), and the three-way and four-way models were equivalent (χ²₁ = 0, *p* = 1.00). In the additive model, body `temperature` was significantly lower in males (β = −1.65 ± 0.72 SE, *p* = 0.022), whereas `hemoplasma` infection (β = 2.06 ± 1.79 SE, *p* = 0.250), other blood-borne `pathogens` (β = 0.51 ± 0.72 SE, *p* = 0.475), and `season` (β = −0.53 ± 0.80 SE, *p* = 0.507) were not significantly associated with body `temperature`. The `sex`-only model had the lowest AIC among single-predictor models (ΔAIC = −1.69 relative to the null). Residuals did not significantly deviate from normality (Shapiro–Wilk: W = 0.958, *p* = 0.222).
+
+-> Interpretation : Body `temperature` showed a `sex`-related difference in adult *Bradypus tridactylus*, with lower `temperature` in males. However, the additive model was not clearly supported over the null model based on AIC, and there was no detectable association between body `temperature` and `hemoplasma` infection, other blood-borne `pathogens`, or `season`.
+
+### Fit Gaussian survival regression models to test the effects of `hemoplasma`, `pathogens`, `season`, `sex` on `temperature` in Cd
+```
 model_11 <- survreg(
   temp_surv ~ hemoplasma * pathogens * season * sex,
   data = data_adult_Cd,
@@ -1071,116 +1353,76 @@ model_11_null <- survreg(
   dist = "gaussian"
 )
 
-anova(model_11_3way, model_11)
-anova(model_11_2way, model_11_3way)
-anova(model_11_add, model_11_2way)
 anova(model_11_null, model_11_add)
-
-AIC(
-  model_11,
-  model_11_3way,
-  model_11_2way,
-  model_11_add,
-  model_11_null
-)
-
-summary(model_10_add)
-summary(model_11_add)
-```
-
--> Results : For adult *Bradypus tridactylus*, the four-way and three-way interaction models did not differ in fit (LRT: χ²₁ = 0, *p* = 1.00). Adding three-way interactions to the two-way model did not improve fit (χ²₄ = 0.20, *p* = 0.995), nor did adding two-way interactions to the additive model (χ²₆ = 11.14, *p* = 0.084). However, the additive model improved fit relative to the null model (χ²₄ = 11.61, *p* = 0.020) and had the lowest AIC (43.40). The additive model was therefore retained.
-
-### Fit Gaussian survival regression models to test the effects of `hemoplasma`, `pathogens`, `season`, `sex` on `temperature` in Bt
-```
-model_10_final <- model_10_add
-summary(model_10_final)
-model_10_no_hemoplasma <- update(model_10_final, . ~ . - hemoplasma)
-model_10_no_pathogens <- update(model_10_final, . ~ . - pathogens)
-model_10_no_season <- update(model_10_final, . ~ . - season)
-model_10_no_sex <- update(model_10_final, . ~ . - sex)
-
-anova(model_10_no_hemoplasma, model_10_final)
-anova(model_10_no_pathogens, model_10_final)
-anova(model_10_no_season, model_10_final)
-anova(model_10_no_sex, model_10_final)
-
-AIC(model_10_final, model_10_no_hemoplasma)
-AIC(model_10_final, model_10_no_pathogens)
-AIC(model_10_final, model_10_no_season)
-AIC(model_10_final, model_10_no_sex)
-```
-
--> Results : For adult *Bradypus tridactylus*, the additive model was retained (AIC = 43.40) and was significantly better than the null model (LRT: χ²₄ = 11.61, *p* = 0.020). Body `temperature` was higher during the wet `season` (β = 0.97 ± 0.40 SE, *p* = 0.016) and lower in `males` (β = −0.87 ± 0.39 SE, *p* = 0.025). `hemoplasma` infection was not associated with body `temperature` (β = −0.40 ± 0.78 SE, *p* = 0.612), nor were other blood-borne `pathogens` (β = 0.59 ± 0.39 SE, *p* = 0.128).
-
--> Interpretation : Body `temperature` showed significant seasonal and `sex`-related variation in adult *Bradypus tridactylus*, but no detectable association with `hemoplasma` infection.
-
-### Fit Gaussian survival regression models to test the interaction effects among `hemoplasma`, `pathogens`, `season`, `sex` on `temperature` in Cd
-```
-model_11 <- survreg(
-  temp ~ hemoplasma * pathogens * season * sex,
-  data = data_adult_Cd,
-  dist = "gaussian"
-)
-
-model_11_3way <- survreg(
-  temp ~ (hemoplasma + pathogens + season + sex)^3,
-  data = data_adult_Cd,
-  dist = "gaussian"
-)
-
-model_11_2way <- survreg(
-  temp ~ (hemoplasma + pathogens + season + sex)^2,
-  data = data_adult_Cd,
-  dist = "gaussian"
-)
-
-model_11_add <- survreg(
-  temp ~ hemoplasma + pathogens + season + sex,
-  data = data_adult_Cd,
-  dist = "gaussian"
-)
-
-model_11_null <- survreg(
-  temp ~ 1,
-  data = data_adult_Cd,
-  dist = "gaussian"
-)
-
-anova(model_11_3way, model_11)
-anova(model_11_2way, model_11_3way)
 anova(model_11_add, model_11_2way)
-anova(model_11_null, model_11_add)
+anova(model_11_2way, model_11_3way)
+anova(model_11_3way, model_11)
 
-AIC(
-  model_11,
-  model_11_3way,
+AIC_table_11 <- AIC(
+  model_11_null,
+  model_11_add,
   model_11_2way,
-  model_11_add,
-  model_11_null
+  model_11_3way,
+  model_11
 )
 
-model_11_no_hemoplasma <- update(model_11_add, . ~ . - hemoplasma)
-model_11_no_pathogens <- update(model_11_add, . ~ . - pathogens)
-model_11_no_season <- update(model_11_add, . ~ . - season)
-model_11_no_sex <- update(model_11_add, . ~ . - sex)
+AIC_table_11$delta_AIC <- AIC_table_11$AIC - min(AIC_table_11$AIC)
 
-anova(model_11_no_hemoplasma, model_11_add)
-anova(model_11_no_pathogens, model_11_add)
-anova(model_11_no_season, model_11_add)
-anova(model_11_no_sex, model_11_add)
+AIC_table_11
 
-AIC(
-  model_11_add,
-  model_11_no_hemoplasma,
-  model_11_no_pathogens,
-  model_11_no_season,
-  model_11_no_sex
+drop1(model_11_add, test="Chisq")
+
+model_11_hemo <- survreg(
+  temp_surv ~ hemoplasma,
+  data=data_adult_Cd,
+  dist="gaussian"
 )
 
-summary(model_11_add)
+model_11_pathogens <- survreg(
+  temp_surv ~ pathogens,
+  data=data_adult_Cd,
+  dist="gaussian"
+)
+
+model_11_season <- survreg(
+  temp_surv ~ season,
+  data=data_adult_Cd,
+  dist="gaussian"
+)
+
+model_11_sex <- survreg(
+  temp_surv ~ sex,
+  data=data_adult_Cd,
+  dist="gaussian"
+)
+
+AIC_models_11 <- AIC(
+  model_11_null,
+  model_11_hemo,
+  model_11_pathogens,
+  model_11_season,
+  model_11_sex
+)
+
+AIC_models_11$delta_AIC <- AIC_models_11$AIC - AIC(model_11_null)
+
+AIC_models_11
+
+model_11_final <- model_11_add
+
+summary(model_11_final)
+
+plot(
+  fitted(model_11_final),
+  residuals(model_11_final),
+  xlab="Fitted body temperature",
+  ylab="Residuals"
+)
+abline(h=0,lty=2)
+
+shapiro.test(residuals(model_11_final))
 ```
-
--> Results : For adult *Choloepus didactylus*, none of the interaction models improved model fit (three-way vs. two-way: LRT, χ²₄ = 0, *p* = 1.00; two-way vs. additive: χ²₆ = 3.55, *p* = 0.737). The additive model also did not improve on the null model (χ²₄ = 0.56, *p* = 0.967), and the null model had the lowest AIC (62.74 vs. 70.17 for the additive model). The null model was therefore retained.
+-> Results : In adult *Choloepus didactylus*, the additive model did not improve model fit relative to the null model (LRT: χ²₄ = 0.56, *p* = 0.967; ΔAIC = +7.44), and the null model had the lowest AIC (62.74). Adding two-way or three-way interactions did not improve fit (χ²₆ = 3.55, *p* = 0.737; χ²₄ = 0, *p* = 1.00), and the three-way and four-way models were equivalent (χ²₁ = 0, *p* = 1.00). None of the predictors was significantly associated with body `temperature` in the additive model (`hemoplasma`: β = 0.34 ± 0.67 SE, *p* = 0.611; other blood-borne `pathogens`: β = −0.15 ± 0.60 SE, *p* = 0.802; `season`: β = 0.18 ± 0.65 SE, *p* = 0.782; `sex`: β = −0.19 ± 0.64 SE, *p* = 0.768). Single-predictor models provided similarly little support, with ΔAIC values ranging from +1.69 to +1.97 relative to the null. Residuals of the additive model showed no significant departure from normality (Shapiro–Wilk: W = 0.977, *p* = 0.907).
 
 -> Interpretation : Body `temperature` showed no detectable association with `hemoplasma` infection, other blood-borne `pathogens`, `season`, or `sex` in adult *Choloepus didactylus*.
 
