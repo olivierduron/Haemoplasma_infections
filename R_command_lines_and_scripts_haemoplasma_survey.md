@@ -4298,9 +4298,9 @@ print(
   pairwise_strata_results_n15
 )
 ```
--> Results : `hemoplasma` prevalence did not differ significantly among foraging `strata` in the complete dataset (LRT: χ²₂ = 1.92, p = 0.382, ΔAIC = −2.08). In the conservative dataset, `strata` significantly improved model fit (LRT: χ²₂ = 7.72, p = 0.021; ΔAIC = 3.72). Model-estimated prevalence was 14.7% (95% CI: 5.7–32.9%) for ground-foraging `species`, 39.6% (95% CI: 14.7–71.4%) for scansorial `species`, and 60.8% (95% CI: 33.9–82.4%) for arboreal `species`. Tukey-adjusted pairwise comparisons identified a significant difference only between ground-foraging and arboreal species (p = 0.013).
+-> Results : `hemoplasma` prevalence did not differ significantly among foraging `strata` in the complete dataset (LRT: χ²₂ = 1.92, p = 0.382, ΔAIC = −2.08). In the conservative dataset, `strata` significantly improved model fit (LRT: χ²₂ = 7.72, p = 0.021; ΔAIC = 3.72). Model-estimated prevalence was 14.7% (95% CI: 5.7–32.9%) for ground-foraging `species`, 39.6% (95% CI: 14.7–71.4%) for scansorial `species`, and 60.8% (95% CI: 33.9–82.4%) for arboreal `species`. Tukey-adjusted pairwise comparisons identified a significant difference only between ground-foraging and arboreal `species` (p = 0.013).
 
--> Interpretation : Foraging `strata` was not associated with interspecific variation in hemoplasma prevalence across all 44 species, but prevalence increased from ground-foraging to arboreal species in the conservative dataset, with marginally to significantly stronger evidence for higher prevalence in arboreal species.
+-> Interpretation : Foraging `strata` was not associated with interspecific variation in `hemoplasma` prevalence across all 44 `species`, but prevalence increased from ground-foraging to arboreal `species` in the conservative dataset, with marginally to significantly stronger evidence for higher prevalence in arboreal `species`.
 
 ### Visualization of association between `hemoplasma` prevalence and foraging `strata` (conservative dataset, 44 `species`)
 ```
@@ -4327,7 +4327,7 @@ species_data_strata_plot <- data_hemoplasma_stat %>%
       levels = c("G", "S", "Ar"),
       labels = c(
         "Ground",
-        "Shrub",
+        "Scansorial",
         "Arboreal"
       )
     ),
