@@ -742,7 +742,7 @@ or_sex_results <- data.frame(
 or_sex_results
 ```
 
-### Test whether `hemoplasma` infection probability differs between `sex` while accounting for `species`-level random effects (1 | `species`) (conservative species-level dataset, 16 `species`)
+### Test whether `hemoplasma` infection probability differs between `sex` while accounting for `species`-level random effects (1 | `species`) (conservative dataset, 16 `species`)
 Fit the full GLMM (model 1_n15) :
 ```
 model_sex_data_n15 <- data_hemoplasma_stat %>%
