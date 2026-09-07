@@ -1093,7 +1093,7 @@ or_model3_results <- data.frame(
 or_model3_results
 ```
 
-### Test whether `hemoplasma` infection probability differs with infections between `anaplasmataceae` and `apicomplexa` while accounting for species-level random effects (1 | `species`) (conservative species-level dataset, 16 `species`)
+### Test whether `hemoplasma` infection probability differs with infections between `anaplasmataceae` and `apicomplexa` while accounting for species-level random effects (1 | `species`) (conservative dataset, 16 `species`)
 Fit the full GLMM (model 3_n15)
 ```
 model3_data_n15 <- data_hemoplasma_stat %>%
@@ -1157,7 +1157,7 @@ anova(
 AIC(model3_c_n15, model3_d_n15)
 ```
 
-Calculate the odds ratio and 95% HDI for the effect of `anaplasmataceae` and `apicomplexa` on `hemoplasma` infection (conservative species-level dataset, 16 `species`)
+Calculate the odds ratio and 95% HDI for the effect of `anaplasmataceae` and `apicomplexa` on `hemoplasma` infection (conservative dataset, 16 `species`)
 ```
 model3_bayes_n15 <- brm(
   hemoplasma ~ anaplasmataceae + apicomplexa + (1 | species),
@@ -1339,7 +1339,7 @@ leave_one_species_results
 
 -> Interpretation: The positive association between `hemoplasma` and `pathogens` was generally robust to the exclusion of individual host `species` and was not driven by a single mammal `species`. Excluding *Bradypus tridactylus* strengthened the estimated association, indicating that this `species` tends to attenuate the overall effect. 
 
-### Visualization of odds ratios and 95% HDIs for `sex`, `pathogens`, `apicomplexa` and `anaplasmataceae` for complete (44 `species`) and conservative species-level dataset (16 `species`)
+### Visualization of odds ratios and 95% HDIs for `sex`, `pathogens`, `apicomplexa` and `anaplasmataceae` for complete (44 `species`) and conservative dataset (16 `species`)
 ```
 or_results <- data.frame(
   variable = c(
@@ -2212,7 +2212,7 @@ order_OR_results
 | Pilosa – Rodentia | 5.571 | 0.192 | 161.553 | 0.6939 |
 | Primates – Rodentia | **96.957** | **3.168** | **2967.547** | **0.0019** |
 
-### Test whether `hemoplasma` infection probability differs between mammalian `order` (conservative species-level dataset, 16 `species`)
+### Test whether `hemoplasma` infection probability differs between mammalian `order` (conservative dataset, 16 `species`)
 Fit the full GLMM (model 4_n15) :
 ```
 model4_data_n15 <- data_hemoplasma_stat %>%
@@ -2258,7 +2258,7 @@ AIC(
 )
 ```
 
-### Post-hoc pairwise comparisons (odds ratios) (conservative species-level dataset, 16 `species`)
+### Post-hoc pairwise comparisons (odds ratios) (conservative dataset, 16 `species`)
 ```
 order_emmeans_n15 <- emmeans(
   model4_a_n15,
@@ -2293,7 +2293,7 @@ order_OR_results_n15 <- summary(
 order_OR_results_n15
 ```
 
--> Tukey-adjusted pairwise comparisons of `hemoplasma` infection odds among mammalian `order` (conservative species-level dataset, 16 `species`)
+-> Tukey-adjusted pairwise comparisons of `hemoplasma` infection odds among mammalian `order` (conservative dataset, 16 `species`)
 | Contrast | OR | 95% CI | Adjusted p-value |
 |---|---:|---:|---:|
 | Cingulata – Didelphimorphia | 1.28 | 0.021–78.86 | 0.9998 |
@@ -2311,7 +2311,7 @@ order_OR_results_n15
 
 -> Interpretation : `hemoplasma` infection probability varied among mammalian orders in both datasets, with the strongest and most consistent contrast involving the substantially higher prevalence in Primates, particularly compared with Rodentia.
 
-### Visualization of odds ratios for mammalian order for complete (44 `species`) and conservative species-level dataset (16 `species`)
+### Visualization of odds ratios for mammalian order for complete (44 `species`) and conservative dataset (16 `species`)
 ```
 order_OR_results <- summary(
   order_OR,
@@ -2740,7 +2740,7 @@ ggsave(
 )
 ```
 
-### Test phylogenetic signal of `hemoplasma` prevalence (Pagel's lambda) in complete (44 `species`) and conservative species-level dataset (16 `species`)
+### Test phylogenetic signal of `hemoplasma` prevalence (Pagel's lambda) in complete (44 `species`) and conservative dataset (16 `species`)
 ```
 species_prev_complete <- data_hemoplasma_stat %>%
   group_by(species) %>%
